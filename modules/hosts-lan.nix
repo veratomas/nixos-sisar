@@ -1,35 +1,36 @@
-# Resolución de nombres en la red local.
-#
-# IMPORTANTE: ajustá las IPs a las de tu red antes de desplegar.
-# Idealmente reservá estas IPs por DHCP (reserva por MAC) en el router.
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+# modules/hosts-lan.nix
+{ config, lib, ... }:
 let
   lan = {
-    "192.168.0.220" = [ "sisar-nfs" ];
-    "192.168.0.221" = [ "sisar1" ];
-    "192.168.0.222" = [ "sisar2" ];
-    "192.168.0.223" = [ "sisar3" ];
-    "192.168.0.224" = [ "sisar4" ];
-    "192.168.0.225" = [ "sisar5" ];
+    sisar-nfs = "192.168.0.220";
+    sisar1    = "192.168.0.221";
+    sisar2    = "192.168.0.222";
+    sisar3    = "192.168.0.223";
+    sisar4    = "192.168.0.224";
+    sisar5    = "192.168.0.225";
   };
+
+  gateway = "192.168.1.1";
+  iface   = "enp0s3";                      # verificar con: ip -br link
+  myIp    = lan.${config.networking.hostName};
 in
 {
-  networking.hosts = lan;
+  # Resolución de nombres (tabla inversa: IP -> [nombres])
+  networking.hosts = lib.mapAttrs' (n: ip: lib.nameValuePair ip [ n ]) lan;
 
-  # mDNS (nombre.local) como respaldo si las IPs cambian.
-  services.avahi = {
-    enable = true;
-    nssmdns4 = true;
-    openFirewall = true;
-    publish = {
-      enable = true;
-      addresses = true;
-      workstation = true;
+  # Dirección propia de este host
+  networking.networkmanager.ensureProfiles.profiles.lan = {
+    connection = {
+      id = "lan";
+      type = "ethernet";
+      interface-name = iface;
+      autoconnect = true;
     };
+    ipv4 = {
+      method = "manual";
+      address1 = "${myIp}/24,${gateway}";
+      dns = gateway;
+    };
+    ipv6.method = "disabled";
   };
 }
