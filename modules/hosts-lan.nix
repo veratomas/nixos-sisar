@@ -10,7 +10,7 @@ let
     sisar5    = "192.168.0.225";
   };
 
-  gateway = "192.168.1.1";
+  gateway = "192.168.0.1";
   iface   = "enp0s3";                      # verificar con: ip -br link
   myIp    = lan.${config.networking.hostName};
 in

@@ -47,6 +47,24 @@ nixos-rebuild switch --flake .#sisar2 --target-host sisar@sisar2 --use-remote-su
 
 Después del primer arranque, definir contraseñas: `sudo passwd sisar`, etc.
 
+### Desplegar toda la flota con colmena
+
+No hace falta agregarlo como input del flake; alcanza con tenerlo instalado:
+
+```
+nix run nixpkgs#colmena -- apply switch          # toda la flota, en paralelo
+nix run nixpkgs#colmena -- apply switch --on @server   # sólo sisar-nfs
+nix run nixpkgs#colmena -- apply switch --on @client   # sisar1..sisar5
+nix run nixpkgs#colmena -- apply build           # sólo evaluar+compilar, sin activar (chequeo previo)
+```
+
+Requiere que `modules/admins.nix` tenga la clave pública real de la máquina
+desde la que despliegas en `users.users.root.openssh.authorizedKeys.keys`
+(colmena se conecta como `root`, con clave — ver `ssh.nix`).
+
+Recomendado: la primera vez, desplegar `sisar-nfs` solo, verificar que sigue
+respondiendo, y recién después `--on @client`.
+
 ## NFS
 
 Servidor: NFSv4, raíz virtual en `/srv/sisar` (`fsid=0`).

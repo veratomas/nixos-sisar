@@ -17,6 +17,7 @@
         "sisar"
         "tvera"
         "bpalazzo"
+        "root" # sólo con clave (ver PermitRootLogin abajo): lo usa colmena para desplegar
       ];
       UseDns = true;
       X11Forwarding = false; # sin entorno gráfico

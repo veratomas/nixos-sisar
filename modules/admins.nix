@@ -28,4 +28,12 @@
 
   # Grupo compartido para los datos exportados por NFS.
   users.groups.sisar-data.gid = 3000;
+
+  # Clave para despliegues automatizados (colmena) como root.
+  # PermitRootLogin = "prohibit-password" en ssh.nix ya exige clave, no
+  # contraseña, así que sólo hace falta declarar la(s) clave(s) pública(s)
+  # de la(s) máquina(s) desde donde se corre `colmena apply`.
+  users.users.root.openssh.authorizedKeys.keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... reemplazar-por-tu-clave-publica-de-despliegue"
+  ];
 }

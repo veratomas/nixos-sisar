@@ -11,7 +11,7 @@
 }:
 let
   # Red local autorizada a montar. Ajustar si tu LAN es otra.
-  lanCidr = "192.168.1.0/24";
+  lanCidr = "192.168.0.0/24";
 
   # Opciones comunes de exportación.
   opts = "rw,sync,no_subtree_check,root_squash";
