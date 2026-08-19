@@ -16,7 +16,7 @@
     nixfmt-rfc-style
   ];
 
-  # Sin entorno gráfico: no se instalan fuentes de escritorio.
+  # Sin fuentes de escritorio acá; las agrega plasma6.nix en el host gráfico.
 
   # Make sure the system uses flakes
   nix.settings.experimental-features = [
@@ -27,9 +27,10 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
-  # Documentación de escritorio innecesaria en un servidor headless
-  documentation.doc.enable = false;
-  documentation.nixos.enable = false;
+  # Documentación de escritorio innecesaria en un servidor headless.
+  # mkDefault para que el host con Plasma (sisar-nfs) pueda reactivarla.
+  documentation.doc.enable = lib.mkDefault false;
+  documentation.nixos.enable = lib.mkDefault false;
 
   nix.gc = {
     automatic = true;

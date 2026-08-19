@@ -1,19 +1,47 @@
-# SISAR — configuración NixOS (6 hosts, sin entorno gráfico)
+# SISAR — configuración NixOS (6 hosts)
 
 ## Hosts
 
-| Host        | Rol                        |
-|-------------|----------------------------|
-| `sisar-nfs` | Servidor NFS               |
-| `sisar1`    | Cliente NFS                |
-| `sisar2`    | Cliente NFS                |
-| `sisar3`    | Cliente NFS                |
-| `sisar4`    | Cliente NFS                |
-| `sisar5`    | Cliente NFS                |
+| Host        | Rol                              |
+|-------------|----------------------------------|
+| `sisar-nfs` | Servidor NFS + escritorio Plasma |
+| `sisar1`    | Cliente NFS (headless)           |
+| `sisar2`    | Cliente NFS (headless)           |
+| `sisar3`    | Cliente NFS (headless)           |
+| `sisar4`    | Cliente NFS (headless)           |
+| `sisar5`    | Cliente NFS (headless)           |
 
 Todos comparten `modules/base.nix` (Rust, Python, PostgreSQL/Docker, SSH,
-usuarios, consola, Tailscale). La única diferencia entre roles es
-`nfs-server.nix` vs `nfs-client.nix`.
+usuarios, consola, Tailscale). `sisar-nfs` suma `nfs-server.nix`, `plasma6.nix`
+y `rustdesk.nix`; los demás, `nfs-client.nix`.
+
+## Escritorio en `sisar-nfs`
+
+`sisar-nfs` es el único host con entorno gráfico, para usarlo como terminal de
+trabajo: KDE Plasma 6 sobre SDDM, con sesión Wayland (por defecto) y X11
+disponible en el selector del login. Incluye Konsole, Kitty y RustDesk.
+
+Los otros cinco siguen headless: `modules/console.nix` deja X, SDDM, Plasma y
+el audio en `lib.mkDefault false`, y `plasma6.nix` — importado sólo desde
+`hosts/sisar-nfs/default.nix` — los sobrescribe. El `mkDefault` es lo que evita
+el error de definiciones en conflicto sin recurrir a `lib.mkForce`.
+
+**RustDesk y Wayland.** La captura de pantalla bajo Wayland pasa por los
+portales XDG y PipeWire, y RustDesk todavía tiene fricciones ahí. Si la sesión
+remota se ve en negro o no toma el teclado, elegí **Plasma (X11)** en SDDM: por
+eso `services.xserver.enable = true` en `plasma6.nix`.
+
+Para conectarse dentro de la LAN sin pasar por los servidores públicos de
+RustDesk, hay que activarlo a mano en la app:
+*Configuración → Seguridad → Habilitar acceso directo por IP*, más una
+contraseña permanente. `modules/rustdesk.nix` ya abre 21115–21119/TCP y
+21116/UDP.
+
+Dos advertencias sobre poner escritorio en el servidor NFS: el cierre de
+sesión, un reinicio por actualización de drivers o un cuelgue de la sesión
+gráfica dejan sin `/mnt/sisar` a los cinco clientes; y la superficie expuesta
+crece bastante. Si el objetivo es sólo tener *una* máquina con GUI, considerá
+moverlo a un `sisar1` y dejar el servidor headless.
 
 ## Antes de desplegar — 3 cosas que hay que tocar
 
@@ -106,28 +134,21 @@ Recomendación: pasar a claves y luego poner
 
 ## Qué se eliminó respecto de la config original
 
-**Entorno de escritorio y servidores gráficos**
-
-- `plasma6.nix` completo: Plasma 6, SDDM, PipeWire/PulseAudio (audio)
-- `services.xserver`, display manager y desktop manager quedan explícitamente
-  en `false` (`modules/console.nix`)
+Todo esto sigue fuera de los cinco clientes; en `sisar-nfs` volvieron Plasma,
+Konsole, Kitty, RustDesk, las fuentes y la documentación.
 
 **Aplicaciones con interfaz gráfica**
 
 - `office.nix` → OnlyOffice
-- `remote-client.nix` → RustDesk (y su puerto TCP 21118 en el firewall)
 - `zen-browser` (también se quitó como input del flake)
 - `zed-editor`
 - `obsidian`
-- `kitty` y `xterm` (emuladores de terminal gráficos; la consola TTY y SSH
-  no los necesitan)
 - `tkinter` de la lista de paquetes de Python
+- `xterm`
 
 **Otros**
 
-- Fuentes de escritorio (`corefonts`, `nerd-fonts.jetbrains-mono`,
-  `libertinus`) y `assets/nixos_wallpaper.jpg`
-- `documentation.doc` / `documentation.nixos`
+- `assets/nixos_wallpaper.jpg`
 
 ## Qué se mantuvo igual
 

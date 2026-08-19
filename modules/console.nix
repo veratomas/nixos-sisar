@@ -1,5 +1,9 @@
-# Reemplaza a terminal.nix: sólo herramientas de consola.
-# Se eliminaron kitty y xterm (emuladores de terminal gráficos).
+# Herramientas de consola, comunes a TODOS los hosts.
+#
+# Los "apagados" de entorno gráfico usan lib.mkDefault a propósito: así el host
+# que necesite escritorio (sisar-nfs, ver modules/plasma6.nix) puede activarlo
+# con una definición normal, sin necesidad de lib.mkForce y sin que el módulo
+# genere un conflicto de definiciones.
 {
   config,
   pkgs,
@@ -14,21 +18,21 @@
     fastfetch
   ];
 
-  # Consola TTY (no X/Wayland)
+  # Consola TTY
   console = {
     earlySetup = true;
     keyMap = "us";
   };
 
-  # Ni servidor X ni gestor de pantalla ni escritorio.
-  services.xserver.enable = false;
-  services.displayManager.sddm.enable = false;
-  services.desktopManager.plasma6.enable = false;
+  # Sin servidor X, gestor de pantalla ni escritorio (salvo override por host).
+  services.xserver.enable = lib.mkDefault false;
+  services.displayManager.sddm.enable = lib.mkDefault false;
+  services.desktopManager.plasma6.enable = lib.mkDefault false;
 
-  # Sin audio (no hay entorno de escritorio).
-  services.pulseaudio.enable = false;
-  services.pipewire.enable = false;
+  # Sin audio (salvo override por host).
+  services.pulseaudio.enable = lib.mkDefault false;
+  services.pipewire.enable = lib.mkDefault false;
 
   # Nota: no se activa environment.noXlibs a propósito: forzaría recompilar
-  # medio nixpkgs sin caché binaria. El sistema ya queda sin entorno gráfico.
+  # medio nixpkgs sin caché binaria.
 }
