@@ -54,7 +54,7 @@
         "sisar2"
         "sisar3"
         "sisar4"
-        "sisar5"
+        #"sisar5"
       ];
 
       # Módulos de un host. Se reutiliza para nixosConfigurations (rebuild
