@@ -40,7 +40,6 @@
   xdg.portal.enable = true;
 
   environment.systemPackages = with pkgs; [
-    konsole
     kitty
   ];
 
