@@ -17,13 +17,43 @@
         "sisar"
         "tvera"
         "bpalazzo"
-        "root" # sólo con clave (ver PermitRootLogin abajo): lo usa colmena para desplegar
+        "root" # opcional: sólo si preferís desplegar como root (ver abajo)
       ];
       UseDns = true;
       X11Forwarding = false; # sin entorno gráfico
       PermitRootLogin = "prohibit-password";
     };
   };
+
+  # --- Acceso para colmena -------------------------------------------------
+  #
+  # colmena se conecta como el usuario `sisar` (deployment.targetUser en
+  # flake.nix) de forma NO interactiva: necesita clave pública, no contraseña,
+  # y sudo sin prompt para activar la generación.
+  #
+  # PONÉ ACÁ tu clave pública (la de la máquina desde la que corrés colmena):
+  #   cat ~/.ssh/id_ed25519.pub
+  users.users.sisar.openssh.authorizedKeys.keys = [
+    # "ssh-ed25519 AAAA... usuario@equipo"
+  ];
+
+  # Alternativa: desplegar como root (targetUser = "root" en flake.nix). En ese
+  # caso hace falta la clave acá y NO hace falta la regla de sudo de abajo.
+  # users.users.root.openssh.authorizedKeys.keys = [
+  #   "ssh-ed25519 AAAA... usuario@equipo"
+  # ];
+
+  security.sudo.extraRules = [
+    {
+      users = [ "sisar" ];
+      commands = [
+        {
+          command = "ALL";
+          options = [ "NOPASSWD" ];
+        }
+      ];
+    }
+  ];
 
   # Cliente SSH: alias cómodos para moverse entre nodos de la LAN.
   programs.ssh.extraConfig = ''

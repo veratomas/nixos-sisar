@@ -1,5 +1,5 @@
 {
-  description = "SISAR cluster configuration (flake-based, headless)";
+  description = "SISAR cluster configuration (flake-based)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
@@ -17,13 +17,31 @@
     let
       system = "x86_64-linux";
 
-      # Módulo compartido por todos los hosts: habilita el overlay de rust-overlay
-      overlaysModule = (
-        { pkgs, ... }:
-        {
-          nixpkgs.overlays = [ inputs.rust-overlay.overlays.default ];
-        }
-      );
+      # Overlays y config de nixpkgs se definen ACÁ, una sola vez, y no dentro
+      # de los módulos.
+      #
+      # Motivo: colmena pasa `meta.nixpkgs` a cada nodo como `nixpkgs.pkgs`, y
+      # el módulo nixpkgs de NixOS prohíbe combinar `nixpkgs.pkgs` con
+      # `nixpkgs.overlays` o `nixpkgs.config` (falla la assertion "Your system
+      # configures nixpkgs with an externally created instance"). Por eso el
+      # antiguo modules/unstable.nix y el `nixpkgs.config.allowUnfree` de
+      # common.nix se movieron hasta acá.
+      overlays = [
+        inputs.rust-overlay.overlays.default
+
+        # pkgs.unstable.*  (reemplaza a modules/unstable.nix)
+        (final: _: {
+          unstable = import inputs.nixpkgs-unstable {
+            inherit (final.stdenv.hostPlatform) system;
+            inherit (final) config;
+          };
+        })
+      ];
+
+      pkgs = import nixpkgs {
+        inherit system overlays;
+        config.allowUnfree = true;
+      };
 
       hostNames = [
         "sisar-nfs"
@@ -34,19 +52,15 @@
         "sisar5"
       ];
 
-      # Lista de módulos de un host. Se reutiliza tanto para nixosConfigurations
-      # (nixos-rebuild local, por si un equipo se despliega a mano) como para
-      # colmena (despliegue remoto de toda la flota), para que ambas rutas de
-      # evaluación no puedan divergir entre sí.
-      hostModules = hostName: [
-        overlaysModule
-        ./hosts/${hostName}
-      ];
+      # Módulos de un host. Se reutiliza para nixosConfigurations (rebuild
+      # local) y para colmena (despliegue remoto), así ambas rutas de
+      # evaluación no pueden divergir.
+      hostModules = hostName: [ ./hosts/${hostName} ];
 
       mkHost =
         hostName:
         nixpkgs.lib.nixosSystem {
-          inherit system;
+          inherit pkgs system;
           specialArgs = {
             inherit inputs;
           };
@@ -67,28 +81,41 @@
     {
       nixosConfigurations = nixpkgs.lib.genAttrs hostNames mkHost;
 
-      # `colmena apply switch` despliega esto a toda la flota (o a un subconjunto
-      # con --on / --on @tag) desde una sola máquina. No hace falta agregar
-      # colmena como input: el binario (nixpkgs#colmena) lee este atributo
-      # directamente al correr `colmena apply` en este directorio.
+      # `nix develop` en este directorio deja colmena (y utilidades de deploy)
+      # en el PATH, con la versión que fija flake.lock. Evita depender de que
+      # esté instalado en la máquina desde la que se despliega.
+      devShells.${system}.default = pkgs.mkShell {
+        packages = with pkgs; [
+          colmena
+          nixfmt-rfc-style
+          nix-output-monitor
+        ];
+      };
+
+      # `colmena apply switch` despliega esto a toda la flota (o a un
+      # subconjunto con --on / --on @tag) desde una sola máquina.
       colmena =
         {
           meta = {
-            nixpkgs = import nixpkgs { inherit system; };
+            nixpkgs = pkgs;
             specialArgs = {
               inherit inputs;
             };
           };
 
-          # Se mezcla en TODOS los nodos. targetUser = "root" requiere el ajuste
-          # de ssh.nix (AllowUsers) descrito en el chat/README; alternativa:
-          # targetUser = "sisar" + sudo NOPASSWD.
+          # Se mezcla en TODOS los nodos.
+          #
+          # targetUser = "sisar": el usuario ya existe en los 6 hosts y está en
+          # AllowUsers. Requiere (a) clave pública propia en
+          # users.users.sisar.openssh.authorizedKeys.keys — ver modules/ssh.nix —
+          # y (b) sudo sin contraseña, que también configura ssh.nix.
+          # Colmena escala privilegios con `sudo -H --` por su cuenta.
           defaults =
             { name, ... }:
             {
               deployment = {
                 targetHost = lan.${name};
-                targetUser = "root";
+                targetUser = "sisar";
                 targetPort = 22;
               };
             };

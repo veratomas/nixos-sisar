@@ -24,8 +24,8 @@
     "flakes"
   ];
 
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
+  # allowUnfree se define ahora en flake.nix (junto con los overlays), porque
+  # colmena inyecta nixpkgs.pkgs y eso prohíbe nixpkgs.config en los módulos.
 
   # Documentación de escritorio innecesaria en un servidor headless.
   # mkDefault para que el host con Plasma (sisar-nfs) pueda reactivarla.

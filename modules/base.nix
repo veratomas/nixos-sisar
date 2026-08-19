@@ -1,8 +1,10 @@
 # Conjunto de módulos comunes a TODOS los hosts (sisar1..sisar5 y sisar-nfs).
+#
+# Nota: los overlays (rust-overlay, pkgs.unstable) y nixpkgs.config ya no se
+# definen en módulos, sino en flake.nix — es incompatible con colmena.
 { ... }:
 {
   imports = [
-    ./unstable.nix
     ./common.nix
     ./console.nix
     ./clitools.nix

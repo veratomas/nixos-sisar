@@ -161,6 +161,64 @@ Konsole, Kitty, RustDesk, las fuentes y la documentación.
   (`evil-helix`, `yazi`, `nushell`, `oh-my-posh`, `fastfetch`, `typst`,
   `tinymist`), locales y zona horaria.
 
+## Colmena — problemas frecuentes
+
+**`nixpkgs.overlays` / `nixpkgs.config` en módulos.** Colmena pasa
+`meta.nixpkgs` a cada nodo como `nixpkgs.pkgs`, y el módulo nixpkgs de NixOS
+prohíbe combinarlo con `nixpkgs.overlays` o `nixpkgs.config`. El síntoma es una
+assertion del estilo *"Your system configures nixpkgs with an externally
+created instance"*, o bien `attribute 'rust-bin' missing` / `attribute
+'unstable' missing` si el overlay se descartó en silencio. Por eso ambos
+overlays y `allowUnfree` viven en `flake.nix` y no en módulos, y por eso se
+eliminó `modules/unstable.nix`.
+
+**Permission denied al conectar.** Colmena corre SSH sin interacción: no sirve
+`PasswordAuthentication`. Hace falta clave pública en
+`users.users.sisar.openssh.authorizedKeys.keys` (`modules/ssh.nix`) y sudo sin
+contraseña, ya configurado ahí. Probá primero a mano:
+
+```
+ssh sisar@192.168.0.221 -o BatchMode=yes true
+ssh sisar@192.168.0.221 sudo -n true
+```
+
+Los dos tienen que salir sin pedir nada.
+
+**Archivos nuevos que "no existen".** Nix ignora lo que no esté en el índice de
+git. Si agregaste un módulo y falla con *path does not exist*, faltó
+`git add modules/<archivo>.nix`.
+
+**`colmena: command not found`.** Colmena es un binario externo, no un módulo
+de NixOS: no lo instala la config de los hosts. Opciones, de menos a más
+permanente:
+
+```
+# 1. Una sola vez, sin instalar nada (ojo con el `--`)
+nix run nixpkgs#colmena -- apply switch --on @client
+
+# 2. Entrar al devShell del repo (versión fijada por flake.lock)
+nix develop
+colmena apply switch --on @client
+```
+
+Para dejarlo instalado en tu equipo de trabajo, agregá `colmena` a
+`environment.systemPackages` de esa máquina. Si el equipo desde el que
+desplegás no es NixOS, `nix run` funciona igual mientras tenga nix con flakes
+habilitado (`experimental-features = nix-command flakes` en `nix.conf`).
+
+**Diagnóstico.** Separá evaluación de despliegue: `colmena apply build` compila
+sin tocar las máquinas, y `--show-trace` da el error completo.
+
+```
+nix run nixpkgs#colmena -- apply build --on sisar1 --show-trace
+nix run nixpkgs#colmena -- apply switch --on @client -v
+nix run nixpkgs#colmena -- apply switch --on sisar-nfs
+```
+
+Si `nixos-rebuild build --flake .#sisar1` funciona y `colmena apply build` no,
+el problema está en la capa de colmena (los dos puntos de arriba), no en la
+configuración del host.
+
 ## Nota sobre `flake.lock`
 
 Se conservó el lock original para no mover las versiones. Como se quitó el
