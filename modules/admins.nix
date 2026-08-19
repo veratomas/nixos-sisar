@@ -34,6 +34,6 @@
   # contraseña, así que sólo hace falta declarar la(s) clave(s) pública(s)
   # de la(s) máquina(s) desde donde se corre `colmena apply`.
   users.users.root.openssh.authorizedKeys.keys = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... reemplazar-por-tu-clave-publica-de-despliegue"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFgUEHxFZK5oe0F58NmBlbNTd51L3mWBlQoRdoutdTxr isatcediac@gmail.com"
   ];
 }
