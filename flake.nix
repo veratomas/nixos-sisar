@@ -6,6 +6,11 @@
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     rust-overlay.url = "github:oxalica/rust-overlay";
+
+    # Colmena como input: necesario para la salida colmenaHive (ver abajo).
+    # A propósito NO se hace inputs.nixpkgs.follows: así se aprovecha la caché
+    # binaria de colmena en vez de recompilarla desde el fuente.
+    colmena.url = "github:zhaofengli/colmena";
   };
 
   outputs =
@@ -81,14 +86,24 @@
     {
       nixosConfigurations = nixpkgs.lib.genAttrs hostNames mkHost;
 
+      # Colmena evalúa esta salida con `nix eval`.
+      #
+      # Sin ella cae al evaluador viejo (nix-instantiate + builtins.getFlake),
+      # que en Nix 2.21+ falla con:
+      #   error: cannot update unlocked flake input 'hive' in pure mode
+      # Ver https://github.com/zhaofengli/colmena/issues/259
+      colmenaHive = inputs.colmena.lib.makeHive self.outputs.colmena;
+
       # `nix develop` en este directorio deja colmena (y utilidades de deploy)
       # en el PATH, con la versión que fija flake.lock. Evita depender de que
       # esté instalado en la máquina desde la que se despliega.
       devShells.${system}.default = pkgs.mkShell {
-        packages = with pkgs; [
-          colmena
-          nixfmt-rfc-style
-          nix-output-monitor
+        packages = [
+          # La colmena del input, no la de nixpkgs: la salida colmenaHive
+          # requiere una versión que use el evaluador nuevo.
+          inputs.colmena.packages.${system}.colmena
+          pkgs.nixfmt-rfc-style
+          pkgs.nix-output-monitor
         ];
       };
 

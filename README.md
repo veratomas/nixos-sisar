@@ -206,6 +206,21 @@ Para dejarlo instalado en tu equipo de trabajo, agregá `colmena` a
 desplegás no es NixOS, `nix run` funciona igual mientras tenga nix con flakes
 habilitado (`experimental-features = nix-command flakes` en `nix.conf`).
 
+**`cannot update unlocked flake input 'hive' in pure mode`.** Colmena evalúa
+los flakes con `nix eval` y para eso necesita la salida `colmenaHive`, generada
+con `colmena.lib.makeHive`. Sin ella cae al evaluador viejo
+(`nix-instantiate` + `builtins.getFlake`), que no funciona en modo puro con
+Nix 2.21+. El flake ya declara el input `colmena` y expone `colmenaHive`; si
+venís de una versión anterior del repo, hace falta:
+
+```
+nix flake lock   # para agregar el input nuevo
+```
+
+Y usar la colmena del input (la del devShell), no cualquiera del sistema: la
+de nixpkgs puede ser 0.4.0, que todavía usa el evaluador viejo. Detalles en
+https://github.com/zhaofengli/colmena/issues/259
+
 **Diagnóstico.** Separá evaluación de despliegue: `colmena apply build` compila
 sin tocar las máquinas, y `--show-trace` da el error completo.
 
