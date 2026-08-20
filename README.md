@@ -161,6 +161,51 @@ Konsole, Kitty, RustDesk, las fuentes y la documentación.
   (`evil-helix`, `yazi`, `nushell`, `oh-my-posh`, `fastfetch`, `typst`,
   `tinymist`), locales y zona horaria.
 
+## Red — "Temporary failure in name resolution"
+
+Los valores de `gateway`, `nameservers` e `iface` en `modules/hosts-lan.nix`
+son los que hay que verificar contra la red real: las IPs de los hosts pueden
+estar bien y aun así no haber internet si el gateway está mal, porque sin ruta
+por defecto tampoco se llega al servidor DNS.
+
+Para separar los síntomas, en el host afectado:
+
+```
+ip -br addr                 # ¿tomó la IP?
+ip route | grep default     # ¿hay ruta por defecto?
+ping -c1 192.168.0.1        # ¿responde el gateway?
+ping -c1 8.8.8.8            # ¿sale a internet? (routing)
+cat /etc/resolv.conf        # ¿hay nameserver?
+ping -c1 google.com         # (DNS)
+```
+
+Interpretación:
+
+| Resultado                                  | Causa                                  |
+|--------------------------------------------|----------------------------------------|
+| No hay ruta por defecto                    | `gateway` mal, o el perfil no se aplicó |
+| El gateway no responde al ping             | `gateway` es de otra red                |
+| `8.8.8.8` anda pero `google.com` no        | sólo DNS: revisar `nameservers`         |
+| `resolv.conf` vacío                        | NetworkManager no aplicó `dns`          |
+
+El gateway y el DNS correctos se sacan de un equipo que ya funcione en esa
+misma red: `ip route | grep default` y `cat /etc/resolv.conf`. En la red
+`icediac` ambos son **192.168.0.240** (no `.1`).
+
+Ojo con el rango: las IPs estáticas `.241`–`.245` tienen que quedar FUERA del
+pool de DHCP del router, o tarde o temprano el DHCP le entrega una de esas
+direcciones a otro equipo y se produce un conflicto difícil de diagnosticar.
+
+Estado del perfil, en el host:
+
+```
+nmcli con show lan
+nmcli device show enp3s0
+```
+
+Si `nmcli con show` no lista `lan`, el keyfile no se aplicó; si lo lista pero
+el dispositivo no lo usa, revisá que `interface-name` coincida con `ip -br link`.
+
 ## Colmena — problemas frecuentes
 
 **`nixpkgs.overlays` / `nixpkgs.config` en módulos.** Colmena pasa
