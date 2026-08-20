@@ -217,17 +217,34 @@ created instance"*, o bien `attribute 'rust-bin' missing` / `attribute
 overlays y `allowUnfree` viven en `flake.nix` y no en módulos, y por eso se
 eliminó `modules/unstable.nix`.
 
-**Permission denied al conectar.** Colmena corre SSH sin interacción: no sirve
-`PasswordAuthentication`. Hace falta clave pública en
-`users.users.sisar.openssh.authorizedKeys.keys` (`modules/ssh.nix`) y sudo sin
-contraseña, ya configurado ahí. Probá primero a mano:
+**Permission denied (publickey,password).** Colmena corre SSH sin interacción:
+`PasswordAuthentication` no le sirve. El usuario con el que se conecta
+(`deployment.targetUser` en `flake.nix`, hoy `root`) tiene que tener autorizada
+la clave — y tienen que ser EL MISMO usuario en los dos lados. El error
+aparece, típicamente, cuando la clave está autorizada para un usuario y
+`targetUser` apunta a otro.
+
+Fuente única: `deployKeys` en `flake.nix`, que `modules/ssh.nix` autoriza para
+root. Probá a mano antes de culpar a colmena:
 
 ```
-ssh sisar@192.168.0.221 -o BatchMode=yes true
-ssh sisar@192.168.0.221 sudo -n true
+ssh -o BatchMode=yes root@192.168.0.242 true
 ```
 
-Los dos tienen que salir sin pedir nada.
+Tiene que salir sin pedir nada. Si falla:
+
+```
+ssh -v root@192.168.0.242 true 2>&1 | grep -i "offering\|authentications"
+```
+
+**Huevo y gallina.** La clave llega a un host recién cuando ESE host aplica la
+configuración. En el bootstrap hay que hacer `sudo nixos-rebuild switch` local
+(o por SSH con contraseña) en cada máquina una vez; a partir de ahí colmena
+puede empujar sola.
+
+**No corras colmena con `sudo`.** Con sudo, SSH usa `/root/.ssh` de tu equipo
+local en vez de tu `~/.ssh`, y no encuentra la clave privada. Colmena escala
+privilegios en el destino, no en el origen.
 
 **Archivos nuevos que "no existen".** Nix ignora lo que no esté en el índice de
 git. Si agregaste un módulo y falla con *path does not exist*, faltó

@@ -3,6 +3,7 @@
   config,
   pkgs,
   lib,
+  deployKeys,
   ...
 }:
 {
@@ -27,33 +28,30 @@
 
   # --- Acceso para colmena -------------------------------------------------
   #
-  # colmena se conecta como el usuario `sisar` (deployment.targetUser en
-  # flake.nix) de forma NO interactiva: necesita clave pública, no contraseña,
-  # y sudo sin prompt para activar la generación.
+  # colmena se conecta como root (deployment.targetUser en flake.nix) de forma
+  # NO interactiva: necesita clave pública, nunca contraseña.
   #
-  # PONÉ ACÁ tu clave pública (la de la máquina desde la que corrés colmena):
-  #   cat ~/.ssh/id_ed25519.pub
-  users.users.sisar.openssh.authorizedKeys.keys = [
-    # "ssh-ed25519 AAAA... usuario@equipo"
-  ];
+  # Las claves se definen en flake.nix (`deployKeys`) y llegan por specialArgs,
+  # así hay una sola fuente de verdad.
+  users.users.root.openssh.authorizedKeys.keys = deployKeys;
 
-  # Alternativa: desplegar como root (targetUser = "root" en flake.nix). En ese
-  # caso hace falta la clave acá y NO hace falta la regla de sudo de abajo.
-  # users.users.root.openssh.authorizedKeys.keys = [
-  #   "ssh-ed25519 AAAA... usuario@equipo"
+  # Alternativa: desplegar como `sisar` (targetUser = "sisar" en flake.nix).
+  # Requiere autorizar la clave para ese usuario Y sudo sin contraseña, porque
+  # colmena escala privilegios con `sudo -H --` para activar la generación.
+  #
+  # users.users.sisar.openssh.authorizedKeys.keys = deployKeys;
+  #
+  # security.sudo.extraRules = [
+  #   {
+  #     users = [ "sisar" ];
+  #     commands = [
+  #       {
+  #         command = "ALL";
+  #         options = [ "NOPASSWD" ];
+  #       }
+  #     ];
+  #   }
   # ];
-
-  security.sudo.extraRules = [
-    {
-      users = [ "sisar" ];
-      commands = [
-        {
-          command = "ALL";
-          options = [ "NOPASSWD" ];
-        }
-      ];
-    }
-  ];
 
   # Cliente SSH: alias cómodos para moverse entre nodos de la LAN.
   programs.ssh.extraConfig = ''

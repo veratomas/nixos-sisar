@@ -48,6 +48,17 @@
         config.allowUnfree = true;
       };
 
+      # Claves públicas autorizadas para desplegar (usuario `sisar` en los 6
+      # hosts). Se generan en la máquina DESDE la que se corre colmena:
+      #   ssh-keygen -t ed25519 -C "usuario@equipo"
+      #   cat ~/.ssh/id_ed25519.pub
+      #
+      # Pegá la línea completa, incluido el "ssh-ed25519 " del principio.
+      # Va acá y no en modules/ssh.nix: ese módulo la recibe por specialArgs.
+      deployKeys = [
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFgUEHxFZK5oe0F58NmBlbNTd51L3mWBlQoRdoutdTxr isatcediac@gmail.com"
+      ];
+
       hostNames = [
         "sisar-nfs"
         "sisar1"
@@ -67,7 +78,7 @@
         nixpkgs.lib.nixosSystem {
           inherit pkgs system;
           specialArgs = {
-            inherit inputs;
+            inherit inputs deployKeys;
           };
           modules = hostModules hostName;
         };
@@ -114,23 +125,26 @@
           meta = {
             nixpkgs = pkgs;
             specialArgs = {
-              inherit inputs;
+              inherit inputs deployKeys;
             };
           };
 
           # Se mezcla en TODOS los nodos.
           #
-          # targetUser = "sisar": el usuario ya existe en los 6 hosts y está en
-          # AllowUsers. Requiere (a) clave pública propia en
-          # users.users.sisar.openssh.authorizedKeys.keys — ver modules/ssh.nix —
-          # y (b) sudo sin contraseña, que también configura ssh.nix.
-          # Colmena escala privilegios con `sudo -H --` por su cuenta.
+          # targetUser = "root": las claves de `deployKeys` se autorizan para
+          # root en modules/ssh.nix, y root ya está en AllowUsers con
+          # PermitRootLogin = "prohibit-password" (sólo clave, nunca password).
+          # Siendo root, colmena no necesita escalar privilegios con sudo.
+          #
+          # Para desplegar como `sisar` en su lugar: cambiar targetUser acá,
+          # y en modules/ssh.nix mover deployKeys al usuario sisar y
+          # descomentar la regla de sudo NOPASSWD.
           defaults =
             { name, ... }:
             {
               deployment = {
                 targetHost = lan.${name};
-                targetUser = "sisar";
+                targetUser = "root";
                 targetPort = 22;
               };
             };
