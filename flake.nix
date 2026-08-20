@@ -56,7 +56,7 @@
       # Pegá la línea completa, incluido el "ssh-ed25519 " del principio.
       # Va acá y no en modules/ssh.nix: ese módulo la recibe por specialArgs.
       deployKeys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFgUEHxFZK5oe0F58NmBlbNTd51L3mWBlQoRdoutdTxr isatcediac@gmail.com"
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM5OAhuIy4cS91dCu1KOOLlHl+EXmPQx9mpzNKUbcdCo sisar@sisar-nfs"
       ];
 
       hostNames = [
