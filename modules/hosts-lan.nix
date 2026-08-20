@@ -2,16 +2,16 @@
 { config, lib, ... }:
 let
   lan = {
-    sisar-nfs = "192.168.0.220";
-    sisar1    = "192.168.0.221";
-    sisar2    = "192.168.0.222";
-    sisar3    = "192.168.0.223";
-    sisar4    = "192.168.0.224";
-    sisar5    = "192.168.0.225";
+    sisar-nfs = "192.168.0.241";
+    sisar1    = "192.168.0.242";
+    sisar2    = "192.168.0.243";
+    sisar3    = "192.168.0.244";
+    sisar4    = "192.168.0.245";
+    # sisar5    = "192.168.0.246";
   };
 
   gateway = "192.168.0.1";
-  iface   = "enp0s3";                      # verificar con: ip -br link
+  iface   = "enp3s0";                      # verificar con: ip -br link
   myIp    = lan.${config.networking.hostName};
 in
 {

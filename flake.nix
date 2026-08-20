@@ -75,10 +75,10 @@
       # IPs de la LAN, usadas por hosts-lan.nix (dentro de cada sistema) y acá
       # por colmena, para saber a qué host conectarse por SSH.
       lan = {
-        sisar-nfs = "192.168.0.162";
-        sisar1 = "192.168.0.158";
-        sisar2 = "192.168.0.159";
-        sisar3 = "192.168.0.160";
+        sisar-nfs = "192.168.0.241";
+        sisar1 = "192.168.0.242";
+        sisar2 = "192.168.0.243";
+        sisar3 = "192.168.0.244";
         sisar4 = "192.168.0.245";
         # sisar5 = "192.168.0.225";
       };
