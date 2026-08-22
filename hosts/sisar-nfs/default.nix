@@ -10,6 +10,7 @@
     ../../modules/base.nix
     ../../modules/nfs-server.nix
     ../../modules/disco-sisar.nix
+    ../../modules/postgresql-server.nix
 
     # Único host con entorno gráfico: se usa como terminal de trabajo.
     ../../modules/plasma6.nix

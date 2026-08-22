@@ -14,10 +14,19 @@
     ./admins.nix
     ./users.nix
     ./locale.nix
-    ./postgresql.nix
+    ./docker.nix
+    ./postgresql-client.nix
     ./software.nix
     ./python.nix
     ./rust.nix
     ./tailscale.nix
   ];
+
+  # postgresql.nix se dividió: el SERVIDOR se importa sólo desde
+  # hosts/sisar-nfs/default.nix (postgresql-server.nix), y acá queda el
+  # cliente. Antes, los seis hosts levantaban su propio PostgreSQL con una
+  # base `sisar` vacía cada uno.
+  #
+  # Docker salió de postgresql.nix a su propio módulo: lo necesitan todos los
+  # nodos para los contenedores de ISCE y descargas.
 }
