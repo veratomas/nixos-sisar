@@ -53,4 +53,6 @@
   # escritorio vuelve a tener sentido (KHelpCenter, man pages en Konsole).
   documentation.doc.enable = true;
   documentation.nixos.enable = true;
+
+  programs.firefox.enable = true;
 }
