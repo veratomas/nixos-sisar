@@ -9,6 +9,7 @@
     ./hardware-configuration.nix
     ../../modules/base.nix
     ../../modules/nfs-client.nix
+    ../../modules/nfs-jobs-p2p.nix
   ];
 
   networking.hostName = "sisar2";

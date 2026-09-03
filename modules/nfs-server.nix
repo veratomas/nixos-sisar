@@ -1,8 +1,8 @@
-# Servidor NFS (host: sisar-nfs)
+# Servidor NFS (host: sisar-server)
 #
 # NFSv4 con raíz en /srv/sisar (fsid=0). /srv/sisar es el disco de datos
 # entero (ver disco-sisar.nix), no un directorio del disco de sistema: por eso
-# alcanza con UN export y los clientes montan "sisar-nfs:/" sobre /srv/sisar,
+# alcanza con UN export y los clientes montan "sisar-server:/" sobre /srv/sisar,
 # quedando el mismo path a los dos lados.
 #
 # Ya no hace falta `crossmnt`: no hay submontajes que cruzar, es un solo
@@ -25,7 +25,7 @@ let
   # interferogramas eso cuesta caro. Con async confirma antes y el
   # rendimiento sube mucho.
   #
-  # El riesgo: si sisar-nfs se apaga de golpe (corte de luz, panic), se
+  # El riesgo: si sisar-server se apaga de golpe (corte de luz, panic), se
   # pierden escrituras que el cliente ya dio por buenas, y el cliente NO se
   # entera. Aceptable para archive/jobs/logs, que son reprocesables. Si el
   # servidor no tiene UPS, cambiá `async` por `sync`.

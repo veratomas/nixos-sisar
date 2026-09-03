@@ -1,4 +1,4 @@
-# Conjunto de módulos comunes a TODOS los hosts (sisar1..sisar5 y sisar-nfs).
+# Conjunto de módulos comunes a TODOS los hosts (sisar1..sisar5 y sisar-server).
 #
 # Nota: los overlays (rust-overlay, pkgs.unstable) y nixpkgs.config ya no se
 # definen en módulos, sino en flake.nix — es incompatible con colmena.
@@ -15,6 +15,8 @@
     ./users.nix
     ./locale.nix
     ./docker.nix
+    ./nvidia-gtx650.nix
+    ./cuda.nix
     ./postgresql-client.nix
     ./software.nix
     ./python.nix
@@ -23,7 +25,7 @@
   ];
 
   # postgresql.nix se dividió: el SERVIDOR se importa sólo desde
-  # hosts/sisar-nfs/default.nix (postgresql-server.nix), y acá queda el
+  # hosts/sisar-server/default.nix (postgresql-server.nix), y acá queda el
   # cliente. Antes, los seis hosts levantaban su propio PostgreSQL con una
   # base `sisar` vacía cada uno.
   #

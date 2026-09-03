@@ -1,4 +1,4 @@
-# RustDesk (escritorio remoto) — SÓLO para sisar-nfs.
+# RustDesk (escritorio remoto) — SÓLO para sisar-server.
 #
 # Requiere entorno gráfico, así que se importa junto con plasma6.nix.
 {

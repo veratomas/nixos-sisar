@@ -1,11 +1,11 @@
-# Disco extra de sisar-nfs: ES /srv/sisar, la raíz del export NFS.
+# Disco extra de sisar-server: ES /srv/sisar, la raíz del export NFS.
 #
 # El disco se monta directamente sobre /srv/sisar en vez de sobre un
 # subdirectorio. Así archive/jobs/logs cuelgan de la raíz del export sin capa
 # intermedia, el path queda idéntico en los cinco hosts, y los clientes tienen
 # un solo montaje en lugar de uno por directorio.
 #
-#   sisar-nfs:  /srv/sisar  = este disco (local)
+#   sisar-server:  /srv/sisar  = este disco (local)
 #   sisar1..4:  /srv/sisar  = el mismo árbol, por NFS
 #
 # Que el path coincida no es estético: los job_spec.toml, los bind-mounts de

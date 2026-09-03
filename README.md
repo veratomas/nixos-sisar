@@ -4,7 +4,7 @@
 
 | Host        | Rol                              |
 |-------------|----------------------------------|
-| `sisar-nfs` | Servidor NFS + escritorio Plasma |
+| `sisar-server` | Servidor NFS + escritorio Plasma |
 | `sisar1`    | Cliente NFS (headless)           |
 | `sisar2`    | Cliente NFS (headless)           |
 | `sisar3`    | Cliente NFS (headless)           |
@@ -12,18 +12,18 @@
 | `sisar5`    | Cliente NFS (headless)           |
 
 Todos comparten `modules/base.nix` (Rust, Python, PostgreSQL/Docker, SSH,
-usuarios, consola, Tailscale). `sisar-nfs` suma `nfs-server.nix`, `plasma6.nix`
+usuarios, consola, Tailscale). `sisar-server` suma `nfs-server.nix`, `plasma6.nix`
 y `rustdesk.nix`; los demás, `nfs-client.nix`.
 
-## Escritorio en `sisar-nfs`
+## Escritorio en `sisar-server`
 
-`sisar-nfs` es el único host con entorno gráfico, para usarlo como terminal de
+`sisar-server` es el único host con entorno gráfico, para usarlo como terminal de
 trabajo: KDE Plasma 6 sobre SDDM, con sesión Wayland (por defecto) y X11
 disponible en el selector del login. Incluye Konsole, Kitty y RustDesk.
 
 Los otros cinco siguen headless: `modules/console.nix` deja X, SDDM, Plasma y
 el audio en `lib.mkDefault false`, y `plasma6.nix` — importado sólo desde
-`hosts/sisar-nfs/default.nix` — los sobrescribe. El `mkDefault` es lo que evita
+`hosts/sisar-server/default.nix` — los sobrescribe. El `mkDefault` es lo que evita
 el error de definiciones en conflicto sin recurrir a `lib.mkForce`.
 
 **RustDesk y Wayland.** La captura de pantalla bajo Wayland pasa por los
@@ -81,7 +81,7 @@ No hace falta agregarlo como input del flake; alcanza con tenerlo instalado:
 
 ```
 nix run nixpkgs#colmena -- apply switch          # toda la flota, en paralelo
-nix run nixpkgs#colmena -- apply switch --on @server   # sólo sisar-nfs
+nix run nixpkgs#colmena -- apply switch --on @server   # sólo sisar-server
 nix run nixpkgs#colmena -- apply switch --on @client   # sisar1..sisar5
 nix run nixpkgs#colmena -- apply build           # sólo evaluar+compilar, sin activar (chequeo previo)
 ```
@@ -90,7 +90,7 @@ Requiere que `modules/admins.nix` tenga la clave pública real de la máquina
 desde la que despliegas en `users.users.root.openssh.authorizedKeys.keys`
 (colmena se conecta como `root`, con clave — ver `ssh.nix`).
 
-Recomendado: la primera vez, desplegar `sisar-nfs` solo, verificar que sigue
+Recomendado: la primera vez, desplegar `sisar-server` solo, verificar que sigue
 respondiendo, y recién después `--on @client`.
 
 ## NFS
@@ -101,7 +101,7 @@ Servidor: NFSv4, raíz virtual en `/srv/sisar` (`fsid=0`).
 - `/srv/sisar/home`  → los clientes lo ven en `/mnt/sisar/home`
 
 Los clientes usan `x-systemd.automount`: el montaje ocurre al primer acceso y
-el arranque no se bloquea si `sisar-nfs` todavía no está levantado. Con `soft`
+el arranque no se bloquea si `sisar-server` todavía no está levantado. Con `soft`
 las operaciones fallan en lugar de colgar el proceso indefinidamente.
 
 Los UID/GID están fijados a mano (`sisar`=1000, `tvera`=1001, `bpalazzo`=1002,
@@ -111,12 +111,12 @@ entre hosts, los permisos se rompen.
 Comprobaciones útiles:
 
 ```
-# en sisar-nfs
+# en sisar-server
 sudo exportfs -v
 systemctl status nfs-server
 
 # en un cliente
-showmount -e sisar-nfs
+showmount -e sisar-server
 ls /mnt/sisar/datos
 ```
 
@@ -134,7 +134,7 @@ Recomendación: pasar a claves y luego poner
 
 ## Qué se eliminó respecto de la config original
 
-Todo esto sigue fuera de los cinco clientes; en `sisar-nfs` volvieron Plasma,
+Todo esto sigue fuera de los cinco clientes; en `sisar-server` volvieron Plasma,
 Konsole, Kitty, RustDesk, las fuentes y la documentación.
 
 **Aplicaciones con interfaz gráfica**
@@ -289,7 +289,7 @@ sin tocar las máquinas, y `--show-trace` da el error completo.
 ```
 nix run nixpkgs#colmena -- apply build --on sisar1 --show-trace
 nix run nixpkgs#colmena -- apply switch --on @client -v
-nix run nixpkgs#colmena -- apply switch --on sisar-nfs
+nix run nixpkgs#colmena -- apply switch --on sisar-server
 ```
 
 Si `nixos-rebuild build --flake .#sisar1` funciona y `colmena apply build` no,

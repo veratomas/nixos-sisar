@@ -1,7 +1,7 @@
 # Herramientas de consola, comunes a TODOS los hosts.
 #
 # Los "apagados" de entorno gráfico usan lib.mkDefault a propósito: así el host
-# que necesite escritorio (sisar-nfs, ver modules/plasma6.nix) puede activarlo
+# que necesite escritorio (sisar-server, ver modules/plasma6.nix) puede activarlo
 # con una definición normal, sin necesidad de lib.mkForce y sin que el módulo
 # genere un conflicto de definiciones.
 {

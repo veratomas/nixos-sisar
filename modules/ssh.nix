@@ -55,7 +55,7 @@
 
   # Cliente SSH: alias cómodos para moverse entre nodos de la LAN.
   programs.ssh.extraConfig = ''
-    Host sisar1 sisar2 sisar3 sisar4 sisar5 sisar-nfs
+    Host sisar1 sisar2 sisar3 sisar4 sisar5 sisar-server
       User sisar
       ForwardX11 no
   '';

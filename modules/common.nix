@@ -28,7 +28,7 @@
   # colmena inyecta nixpkgs.pkgs y eso prohíbe nixpkgs.config en los módulos.
 
   # Documentación de escritorio innecesaria en un servidor headless.
-  # mkDefault para que el host con Plasma (sisar-nfs) pueda reactivarla.
+  # mkDefault para que el host con Plasma (sisar-server) pueda reactivarla.
   documentation.doc.enable = lib.mkDefault false;
   documentation.nixos.enable = lib.mkDefault false;
 

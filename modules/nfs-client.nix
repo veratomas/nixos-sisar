@@ -1,6 +1,6 @@
 # Cliente NFS (hosts: sisar1..sisar4)
 #
-# UN solo montaje: la raíz del export de sisar-nfs sobre /srv/sisar, el MISMO
+# UN solo montaje: la raíz del export de sisar-server sobre /srv/sisar, el MISMO
 # path que tiene el disco en el servidor. Adentro quedan archive/, jobs/ y
 # logs/ como directorios comunes.
 #
@@ -17,7 +17,7 @@
   ...
 }:
 let
-  server = "sisar-nfs";
+  server = "sisar-server";
 
   mountOpts = [
     "nfsvers=4.2"

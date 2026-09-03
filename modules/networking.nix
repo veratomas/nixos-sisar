@@ -10,6 +10,6 @@
   # Firewall activo; SSH abierto (ver ssh.nix para el resto de la config).
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 22 ];
+    allowedTCPPorts = [ 22 19239 ];
   };
 }

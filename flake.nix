@@ -5,7 +5,16 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
+    # nixpkgs actual ya no empaqueta ningún CUDA anterior a la serie 11.4:
+    # las GTX 650 son Kepler (sm_30), y CUDA dejó de compilar para sm_30 a
+    # partir de la 11.0 (ver modules/cuda.nix). Se fija este nixpkgs viejo
+    # SOLO para sacar `cudatoolkit_10_2` de ahí, vía el overlay `cuda102` de
+    # abajo — nada más de este input se usa en el resto de la config.
+    nixpkgs-cuda102.url = "github:NixOS/nixpkgs/nixos-20.09";
+
     rust-overlay.url = "github:oxalica/rust-overlay";
+
+    zen-browser.url = "github:youwen5/zen-browser-flake";
 
     # Colmena como input: necesario para la salida colmenaHive (ver abajo).
     # A propósito NO se hace inputs.nixpkgs.follows: así se aprovecha la caché
@@ -41,6 +50,22 @@
             inherit (final) config;
           };
         })
+
+        # pkgs.cuda102.cudatoolkit_10_2 — ver comentario del input arriba y
+        # modules/cuda.nix. nixos-20.09 está EOL (sin actualizaciones desde
+        # 2021): si su caché binaria ya no tiene este derivation cacheado,
+        # `nixos-rebuild`/`colmena` van a intentar compilarlo desde el
+        # fuente. cudatoolkit es básicamente el instalador binario de NVIDIA
+        # re-empaquetado (fetchurl + patchelf), así que en general "compilar"
+        # es sólo bajar y desempaquetar ese instalador — pero si la URL de
+        # NVIDIA para esa versión ya no resuelve, el build va a fallar. Vale
+        # la pena probar `colmena build` una vez antes de depender de esto.
+        (final: _: {
+          cuda102 = import inputs.nixpkgs-cuda102 {
+            inherit (final.stdenv.hostPlatform) system;
+            config.allowUnfree = true;
+          };
+        })
       ];
 
       pkgs = import nixpkgs {
@@ -56,11 +81,11 @@
       # Pegá la línea completa, incluido el "ssh-ed25519 " del principio.
       # Va acá y no en modules/ssh.nix: ese módulo la recibe por specialArgs.
       deployKeys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM5OAhuIy4cS91dCu1KOOLlHl+EXmPQx9mpzNKUbcdCo sisar@sisar-nfs"
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM5OAhuIy4cS91dCu1KOOLlHl+EXmPQx9mpzNKUbcdCo sisar@sisar-server"
       ];
 
       hostNames = [
-        "sisar-nfs"
+        "sisar-server"
         "sisar1"
         "sisar2"
         "sisar3"
@@ -86,7 +111,7 @@
       # IPs de la LAN, usadas por hosts-lan.nix (dentro de cada sistema) y acá
       # por colmena, para saber a qué host conectarse por SSH.
       lan = {
-        sisar-nfs = "192.168.0.241";
+        sisar-server = "192.168.0.241";
         sisar1 = "192.168.0.242";
         sisar2 = "192.168.0.243";
         sisar3 = "192.168.0.244";
@@ -155,7 +180,7 @@
             imports = hostModules hostName;
           }
           // (
-            if hostName == "sisar-nfs" then
+            if hostName == "sisar-server" then
               { deployment.tags = [ "server" ]; }
             else
               { deployment.tags = [ "client" ]; }

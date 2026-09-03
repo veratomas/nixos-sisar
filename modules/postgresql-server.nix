@@ -1,7 +1,7 @@
-# PostgreSQL — SERVIDOR (host: sisar-nfs solamente).
+# PostgreSQL — SERVIDOR (host: sisar-server solamente).
 #
 # La base `sisar` vive únicamente acá. Los nodos no corren PostgreSQL: se
-# conectan por TCP a sisar-nfs:5432 (ver postgresql-client.nix). Una sola
+# conectan por TCP a sisar-server:5432 (ver postgresql-client.nix). Una sola
 # copia de los datos, sin réplicas que sincronizar.
 {
   config,
@@ -47,8 +47,8 @@ in
     # Reemplaza al `local all all trust` anterior.
     #
     # `peer` en local: el usuario del sistema tiene que coincidir con el rol.
-    # Desde sisar-nfs, el usuario `sisar` entra como rol `sisar` sin
-    # contraseña, y `postgres` como superusuario. Si algo en sisar-nfs se
+    # Desde sisar-server, el usuario `sisar` entra como rol `sisar` sin
+    # contraseña, y `postgres` como superusuario. Si algo en sisar-server se
     # conecta localmente con OTRO rol, va a empezar a fallar — en ese caso
     # volvé a `trust` en la línea local.
     #

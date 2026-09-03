@@ -1,7 +1,7 @@
 # PostgreSQL — CLIENTE (todos los hosts).
 #
 # No levanta ningún servidor: sólo deja las herramientas (psql, pg_dump) y las
-# variables de entorno para que cualquier proceso apunte a sisar-nfs sin
+# variables de entorno para que cualquier proceso apunte a sisar-server sin
 # repetir la cadena de conexión en cada script.
 #
 # Con esto, en cualquier nodo alcanza con `psql` a secas para entrar a la base
@@ -16,7 +16,7 @@
   environment.systemPackages = with pkgs; [ postgresql ];
 
   environment.sessionVariables = {
-    PGHOST = "sisar-nfs";
+    PGHOST = "sisar-server";
     PGPORT = "5432";
     PGDATABASE = "sisar";
     PGUSER = "sisar";

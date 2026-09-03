@@ -1,4 +1,4 @@
-# Escritorio KDE Plasma 6 — SÓLO para sisar-nfs.
+# Escritorio KDE Plasma 6 — SÓLO para sisar-server.
 #
 # No se importa desde base.nix: los sisar1..sisar5 siguen headless. Este módulo
 # sobrescribe los mkDefault de console.nix.
@@ -26,6 +26,11 @@
   # Aceleración gráfica
   hardware.graphics.enable = true;
 
+  # Único host con escritorio: acá sí tiene sentido el panel gráfico de
+  # nvidia-settings (nvidia-gtx650.nix lo deja en false por default para no
+  # instalarlo en los nodos headless).
+  hardware.nvidia.nvidiaSettings = true;
+
   # Audio (PipeWire, no PulseAudio)
   services.pulseaudio.enable = false;
   services.pipewire = {
@@ -41,6 +46,7 @@
 
   environment.systemPackages = with pkgs; [
     kitty
+    inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 
   fonts.packages = [
