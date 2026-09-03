@@ -64,6 +64,7 @@
           cuda102 = import inputs.nixpkgs-cuda102 {
             inherit (final.stdenv.hostPlatform) system;
             config.allowUnfree = true;
+            config.nvidia.acceptLicense = true;
           };
         })
       ];
@@ -71,6 +72,7 @@
       pkgs = import nixpkgs {
         inherit system overlays;
         config.allowUnfree = true;
+        config.nvidia.acceptLicense = true;
       };
 
       # Claves públicas autorizadas para desplegar (usuario `sisar` en los 6
