@@ -47,6 +47,11 @@ in
     "d /srv/sisar/archive 2775 sisar sisar-data -"
     "d /srv/sisar/jobs    2775 sisar sisar-data -"
     "d /srv/sisar/logs    2775 sisar sisar-data -"
+    # results/ es donde queda lo que vale la pena conservar de un job una vez
+    # que terminó: los nodos copian acá según la política de retención, y de
+    # acá las sirve la API. Es lo que sobrevive cuando el directorio de trabajo
+    # del nodo se recupera (ver docs/sessions/session2/plan-node-local-jobs.md).
+    "d /srv/sisar/results 2775 sisar sisar-data -"
   ];
 
   systemd.services.nfs-server = {

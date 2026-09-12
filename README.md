@@ -93,16 +93,49 @@ desde la que despliegas en `users.users.root.openssh.authorizedKeys.keys`
 Recomendado: la primera vez, desplegar `sisar-server` solo, verificar que sigue
 respondiendo, y recién después `--on @client`.
 
-## NFS
+## Almacenamiento
 
-Servidor: NFSv4, raíz virtual en `/srv/sisar` (`fsid=0`).
+Hay **dos** árboles, y la diferencia importa:
 
-- `/srv/sisar/datos` → los clientes lo ven en `/mnt/sisar/datos`
-- `/srv/sisar/home`  → los clientes lo ven en `/mnt/sisar/home`
+### 1. El árbol central, en `sisar-server`
 
-Los clientes usan `x-systemd.automount`: el montaje ocurre al primer acceso y
-el arranque no se bloquea si `sisar-server` todavía no está levantado. Con `soft`
-las operaciones fallan en lugar de colgar el proceso indefinidamente.
+NFSv4, raíz del export en `/srv/sisar` (`fsid=0`), montado en el mismo path en
+los seis hosts (`modules/nfs-server.nix`, `modules/nfs-client.nix`):
+
+```
+/srv/sisar/archive    material reutilizable: SLC, DEM, órbitas, weather
+/srv/sisar/logs       salida de los contenedores
+/srv/sisar/results    lo exportado de cada job terminado — lo que sirve la API
+```
+
+### 2. Los jobs, locales a cada nodo
+
+Cada nodo de cómputo guarda sus jobs en su **propio disco** y los publica con un
+nombre que es idéntico en todos los hosts (`modules/storage-nodes.nix`):
+
+```
+/srv/sisar-nodes/<nodo>/jobs/<uuid>
+
+    <nodo> == el host    -> bind mount de /var/lib/sisar/jobs (local)
+    <nodo> != el host    -> NFSv4 contra el export de ese nodo
+```
+
+El bind mount del propio directorio no es redundante: es lo que hace que el
+dueño llame a sus jobs igual que sus peers. `job_spec.toml` y los bind-mounts de
+Docker guardan rutas absolutas, y el scheduler prefiere las tareas cuyo
+`work_dir` empieza con su propio root, así que un directorio con dos nombres
+rompe las dos cosas. (El módulo anterior, `nfs-jobs-p2p.nix`, tenía justamente
+ese problema: `/srv/<host>/jobs` para el dueño y `/mnt/peers/<host>/jobs` para
+los demás.)
+
+Los nodos todavía no tienen disco de datos propio: `/var/lib/sisar/jobs` está
+hoy en el disco de sistema. Cuando lo tengan, alcanza con montarlo ahí; el
+módulo no cambia.
+
+Los clientes usan `x-systemd.automount` para lo remoto: el montaje ocurre al
+primer acceso y el arranque no se bloquea si el otro host no está levantado. El
+bind local, en cambio, se monta siempre — el scheduler lo necesita desde el
+arranque, y fallar es mejor que escribir bajo un mountpoint vacío.
 
 Los UID/GID están fijados a mano (`sisar`=1000, `tvera`=1001, `bpalazzo`=1002,
 grupo compartido `sisar-data`=3000) porque NFS mapea por número: si difieren

@@ -86,14 +86,11 @@
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM5OAhuIy4cS91dCu1KOOLlHl+EXmPQx9mpzNKUbcdCo sisar@sisar-server"
       ];
 
-      hostNames = [
-        "sisar-server"
-        "sisar1"
-        "sisar2"
-        "sisar3"
-        "sisar4"
-        #"sisar5"
-      ];
+      # Fuente única de la lista de hosts, compartida con modules/hosts-lan.nix
+      # y modules/storage-nodes.nix. Agregar un nodo es una línea en nodes.nix.
+      nodes = import ./nodes.nix;
+
+      hostNames = builtins.attrNames (nodes.server // nodes.compute);
 
       # Módulos de un host. Se reutiliza para nixosConfigurations (rebuild
       # local) y para colmena (despliegue remoto), así ambas rutas de
@@ -111,15 +108,9 @@
         };
 
       # IPs de la LAN, usadas por hosts-lan.nix (dentro de cada sistema) y acá
-      # por colmena, para saber a qué host conectarse por SSH.
-      lan = {
-        sisar-server = "192.168.0.241";
-        sisar1 = "192.168.0.242";
-        sisar2 = "192.168.0.243";
-        sisar3 = "192.168.0.244";
-        sisar4 = "192.168.0.245";
-        # sisar5 = "192.168.0.225";
-      };
+      # por colmena, para saber a qué host conectarse por SSH. Salen de
+      # nodes.nix, igual que hostNames.
+      lan = nodes.server // nodes.compute;
     in
     {
       nixosConfigurations = nixpkgs.lib.genAttrs hostNames mkHost;

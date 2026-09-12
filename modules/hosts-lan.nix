@@ -16,14 +16,11 @@
   ...
 }:
 let
-  lan = {
-    sisar-server = "192.168.0.241";
-    sisar1 = "192.168.0.242";
-    sisar2 = "192.168.0.243";
-    sisar3 = "192.168.0.244";
-    sisar4 = "192.168.0.245";
-    # sisar5    = "192.168.0.246";
-  };
+  # Fuente única de la lista de hosts: ../nodes.nix. Antes esta lista estaba
+  # repetida acá, en flake.nix y en el módulo de storage, y agregar un nodo
+  # obligaba a acordarse de las tres.
+  nodes = import ../nodes.nix;
+  lan = nodes.server // nodes.compute;
 
   # Verificado contra el DHCP de la red (icediac): el gateway es .240, NO .1.
   gateway = "192.168.0.240";
