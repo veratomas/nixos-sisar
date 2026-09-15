@@ -25,7 +25,14 @@
     # `host` y `port`, serde ignoraba la clave desconocida y el servidor
     # escuchaba en 127.0.0.1 sin un solo error. Ahora el flake de SISAR tiene un
     # check que le pasa el TOML generado a los binarios.
-    sisar.url = "github:veratomas/sisar";
+    # git+ssh y no github:, a propósito. El repositorio es privado, y el
+    # fetcher `github:` resuelve por la API REST de GitHub, que desde Nix va sin
+    # credenciales: un repo privado le devuelve 404, indistinguible de uno que
+    # no existe. Con git+ssh usa git, que ya tiene la clave con la que empujás.
+    #
+    # El ref es explícito para que un cambio de rama por defecto en GitHub no
+    # mueva lo que despliega esta configuración.
+    sisar.url = "git+ssh://git@github.com/veratomas/sisar?ref=0.2.0";
 
     # Colmena como input: necesario para la salida colmenaHive (ver abajo).
     # A propósito NO se hace inputs.nixpkgs.follows: así se aprovecha la caché

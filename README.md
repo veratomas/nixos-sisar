@@ -347,12 +347,19 @@ ignoraba la clave desconocida y el servidor escuchaba en `127.0.0.1` sin un solo
 error. El flake de SISAR ahora trae un check que le pasa el TOML generado a los
 binarios con `--check-config`.
 
-**`flake.lock` todavía no tiene el input `sisar`.** Se genera después de empujar
-el repositorio unificado:
+El input es `git+ssh` y no `github:`, a propósito: el repositorio es privado, y
+el fetcher `github:` resuelve por la API REST de GitHub, que desde Nix va sin
+credenciales. Un repositorio privado le devuelve **404**, que es indistinguible
+de uno que no existe:
 
-```bash
-nix flake lock
 ```
+error: unable to download 'https://api.github.com/repos/veratomas/sisar/commits/HEAD':
+       HTTP error 404
+```
+
+Con `git+ssh` usa git, que ya tiene la clave con la que empujás. Hace falta
+tener el agente SSH disponible: `colmena` evalúa en esta máquina y como tu
+usuario, así que alcanza. `sudo nixos-rebuild` no vería el agente.
 
 Para trabajar contra una copia local sin empujar:
 
