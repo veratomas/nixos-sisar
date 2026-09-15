@@ -334,3 +334,32 @@ configuración del host.
 Se conservó el lock original para no mover las versiones. Como se quitó el
 input `zen-browser`, la primera evaluación va a regenerar el nodo obsoleto sola.
 Si querés forzarlo: `nix flake lock`.
+
+## El código de SISAR viene del flake de SISAR
+
+Los módulos `services.sisar.server` y `services.sisar.scheduler` ya no viven acá:
+están en el repositorio `sisar`, al lado de los structs de configuración que
+generan. Este repositorio los consume como input.
+
+Mientras estuvieron separados nadie podía probar el par, y derivaron: el módulo
+emitía `server.listen` mientras `ServerConfig` leía `host` y `port`, serde
+ignoraba la clave desconocida y el servidor escuchaba en `127.0.0.1` sin un solo
+error. El flake de SISAR ahora trae un check que le pasa el TOML generado a los
+binarios con `--check-config`.
+
+**`flake.lock` todavía no tiene el input `sisar`.** Se genera después de empujar
+el repositorio unificado:
+
+```bash
+nix flake lock
+```
+
+Para trabajar contra una copia local sin empujar:
+
+```bash
+nix eval .#nixosConfigurations.sisar1.config.system.build.toplevel.drvPath \
+  --override-input sisar /ruta/al/repo/sisar
+```
+
+No commitear el lock generado con `--override-input`: queda con una URL
+`file:///` de esta máquina.

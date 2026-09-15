@@ -16,6 +16,17 @@
 
     zen-browser.url = "github:youwen5/zen-browser-flake";
 
+    # El código de SISAR: paquetes (sisar-server, sisar-scheduler, los runners)
+    # y los módulos de NixOS que los configuran.
+    #
+    # Los módulos viven en ese repo y no acá a propósito: generan el config.toml
+    # que leen los binarios, y mientras estuvieron separados nadie pudo probar
+    # el par. sisar-server.nix emitía `server.listen` mientras ServerConfig leía
+    # `host` y `port`, serde ignoraba la clave desconocida y el servidor
+    # escuchaba en 127.0.0.1 sin un solo error. Ahora el flake de SISAR tiene un
+    # check que le pasa el TOML generado a los binarios.
+    sisar.url = "github:veratomas/sisar";
+
     # Colmena como input: necesario para la salida colmenaHive (ver abajo).
     # A propósito NO se hace inputs.nixpkgs.follows: así se aprovecha la caché
     # binaria de colmena en vez de recompilarla desde el fuente.
