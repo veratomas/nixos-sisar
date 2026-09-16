@@ -20,7 +20,7 @@
   services.sisar.scheduler = {
     enable = true;
     package = inputs.sisar.packages.x86_64-linux.sisar-scheduler;
-
+    logLevel = "sisar_scheduler::scheduler=debug,shared=info";
     databaseUrl = "postgres://sisar@sisar-server/sisar";
 
     # Presupuesto de este nodo para contenedores. RAM suele ser el límite real:
@@ -29,6 +29,7 @@
       cpuCores = 8;
       ramGb = 16.0;
     };
+    storage.minFreeGb = 50.0;
 
     # Credenciales fuera del store, legibles por el gid 3000 (sisar-data).
     netrcFile = "/etc/sisar/netrc";
