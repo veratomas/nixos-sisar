@@ -12,7 +12,7 @@
     ../../modules/nfs-server.nix
     ../../modules/disco-sisar.nix
     ../../modules/postgresql-server.nix
-    inputs.sisar.nixosModules.server
+    ../../modules/sisar-master.nix
 
     # Único host con entorno gráfico: se usa como terminal de trabajo.
     ../../modules/plasma6.nix
@@ -21,17 +21,15 @@
 
   networking.hostName = "sisar-server";
 
-  # El API server, como servicio. El paquete sale del flake de SISAR: nada acá
-  # sabe de cargo, y nada apunta a ./target/release/.
+  # Lo propio del servidor. userTiers y la imagen de resultados salen de
+  # sisar-cluster.nix, compartidos con los nodos.
   services.sisar.server = {
     enable = true;
-    package = inputs.sisar.packages.x86_64-linux.sisar-server;
     listen = "0.0.0.0:8080";
     openFirewall = true;
 
-    # Los tokens NO van en el store: este archivo lo crea el operador,
-    # root-owned, y el servidor lo lee al arrancar.
-    #   sudo install -o sisar -g sisar -m 600 /dev/null /etc/sisar/interface-tokens.toml
+    # Los tokens no van al store: archivo root-owned que el servidor lee al
+    # arrancar. Rotar uno es editarlo y reiniciar el servicio.
     interfaceTokensFile = "/etc/sisar/interface-tokens.toml";
   };
 

@@ -370,3 +370,43 @@ nix eval .#nixosConfigurations.sisar1.config.system.build.toplevel.drvPath \
 
 No commitear el lock generado con `--override-input`: queda con una URL
 `file:///` de esta máquina.
+
+## Dónde se configura la flota
+
+`sisar-cluster.nix` en la raíz: un archivo de datos, no un módulo. Tiene lo que
+vale para todos — base de datos, raíz central, credenciales, etiquetas de
+imagen, `userTiers` y el contenido de `workflows.toml` (tiers y overrides por
+etapa).
+
+Lo consumen los dos módulos envoltorio:
+
+| Módulo | Para | Trae del flake |
+|---|---|---|
+| `modules/sisar-node.nix` | los nodos de cómputo | `nixosModules.scheduler` |
+| `modules/sisar-master.nix` | `sisar-server` | `nixosModules.server` |
+
+Un host de cómputo queda en esto:
+
+```nix
+imports = [ ../../modules/sisar-node.nix ];
+
+services.sisar.scheduler = {
+  enable = true;
+  resources = { cpuCores = 8; ramGb = 16.0; };
+};
+```
+
+Todo se aplica con `mkDefault`, así que un nodo puede apartarse cuando hace
+falta — otro disco, otro `storage.minFreeGb` — sin perder el lugar único donde
+está el valor común.
+
+`userTiers` y la imagen de resultados salen de ahí para el servidor **y** para
+los nodos. Antes eran dos declaraciones con un comentario pidiendo que
+coincidieran; el servidor valida los tiers al aceptar un job y el scheduler
+aplica `max_concurrent_jobs` al despachar, así que si divergen un job entra y
+después no sale.
+
+Qué tier le toca a cada etapa **no** está acá: está compilado en
+`shared/src/models.rs` (`resource_tier()`). Acá se define cuánto cuesta cada
+tier, y `isce2_overrides` / `mintpy_overrides` / `miaplpy_overrides` escapan del
+tier para una etapa puntual.
