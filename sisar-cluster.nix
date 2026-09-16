@@ -64,26 +64,26 @@
   workflows = {
     tiers = {
       light = {
-        cpu_cores = 2;
-        ram_gb = 4.0;
+        cpu_cores = 1;
+        ram_gb = 3.0;
       };
       medium = {
-        cpu_cores = 4;
-        ram_gb = 12.0;
+        cpu_cores = 1;
+        ram_gb = 3.0;
       };
       heavy = {
-        cpu_cores = 8;
-        ram_gb = 24.0;
+        cpu_cores = 1;
+        ram_gb = 3.0;
       };
     };
 
     download = {
-      cpu_cores = 2;
-      ram_gb = 4.0;
+      cpu_cores = 1;
+      ram_gb = 3.0;
     };
     results = {
-      cpu_cores = 2;
-      ram_gb = 4.0;
+      cpu_cores = 1;
+      ram_gb = 3.0;
     };
 
     # Overrides por etapa. Ganan sobre el tier. Las claves son el nombre de la
@@ -92,7 +92,7 @@
       # Ejemplo, comentado: bajar pairs_misreg para que entren dos por nodo.
       # Los números de tier son provisionales y nadie midió el pico real —
       # medir antes de bajarlos, o el OOM killer lo mide por vos.
-      # pairs_misreg = { cpu_cores = 4; ram_gb = 8.0; };
+      pairs_misreg = { cpu_cores = 1; ram_gb = 3.0; };
     };
     mintpy_overrides = { };
     miaplpy_overrides = { };
