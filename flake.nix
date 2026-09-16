@@ -101,7 +101,7 @@
       # Pegá la línea completa, incluido el "ssh-ed25519 " del principio.
       # Va acá y no en modules/ssh.nix: ese módulo la recibe por specialArgs.
       deployKeys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM5OAhuIy4cS91dCu1KOOLlHl+EXmPQx9mpzNKUbcdCo sisar@sisar-server"
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN29w53IjJVwhY7BG9tkoZEYb9DEGc/812dxYJ2kJcvz veratomas.sf@gmail.com"
       ];
 
       # Fuente única de la lista de hosts, compartida con modules/hosts-lan.nix
