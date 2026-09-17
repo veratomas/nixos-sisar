@@ -92,7 +92,7 @@
       # Ejemplo, comentado: bajar pairs_misreg para que entren dos por nodo.
       # Los números de tier son provisionales y nadie midió el pico real —
       # medir antes de bajarlos, o el OOM killer lo mide por vos.
-      pairs_misreg = { cpu_cores = 1; ram_gb = 3.0; };
+      filter_coherence = { cpu_cores = 1; ram_gb = 9.0; };
     };
     mintpy_overrides = { };
     miaplpy_overrides = { };

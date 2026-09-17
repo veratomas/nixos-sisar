@@ -47,6 +47,7 @@
   environment.systemPackages = with pkgs; [
     kitty
     inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
+    unstable.claude-code
   ];
 
   fonts.packages = [
