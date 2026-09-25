@@ -56,6 +56,19 @@
         "type": "github"
       }
     },
+    "isat-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1790204608,
+        "narHash": "sha256-6We5C1DVsgTHJrpK8GfKglBspyKFbzinGiup6j6e8IA=",
+        "path": "/var/www/sisar/isat-server",
+        "type": "path"
+      },
+      "original": {
+        "path": "/var/www/sisar/isat-server",
+        "type": "path"
+      }
+    },
     "nix-github-actions": {
       "inputs": {
         "nixpkgs": [
@@ -208,6 +221,7 @@
     "root": {
       "inputs": {
         "colmena": "colmena",
+        "isat-src": "isat-src",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-cuda102": "nixpkgs-cuda102",
         "nixpkgs-unstable": "nixpkgs-unstable",

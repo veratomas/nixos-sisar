@@ -13,6 +13,8 @@
     ../../modules/disco-sisar.nix
     ../../modules/postgresql-server.nix
     ../../modules/sisar-master.nix
+    ../../modules/nginx.nix
+    ../../modules/isat.nix
 
     # Único host con entorno gráfico: se usa como terminal de trabajo.
     ../../modules/plasma6.nix

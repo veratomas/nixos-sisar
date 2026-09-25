@@ -7,6 +7,7 @@
   imports = [
     ./common.nix
     ./console.nix
+    ./sisar-terminal.nix
     ./clitools.nix
     ./networking.nix
     ./hosts-lan.nix

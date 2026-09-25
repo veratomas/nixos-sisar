@@ -43,10 +43,30 @@ let
 
   # Formato keyfile de NetworkManager: lista separada y terminada en ";"
   toNmList = lib.concatMapStrings (s: "${s};");
+
+  # Nombres extra que resuelven a un host de la flota, además del suyo propio.
+  #
+  # sisar.com.ar es el sitio web (modules/nginx.nix + modules/isat.nix): el
+  # dominio está registrado pero sus nameservers devuelven REFUSED, así que no
+  # resuelve por DNS y hay que ponerlo a mano. Va acá, y no en nginx.nix, para
+  # que lo resuelva CUALQUIER host de la flota y no sólo el que sirve la
+  # página: si no, desde sisar1..4 el nombre no existe.
+  #
+  # Una máquina de la LAN que no sea de la flota (una notebook, Windows) no
+  # pasa por acá: o entra por http://192.168.0.241, o se le agrega esa línea a
+  # su propio archivo de hosts, o se carga el nombre en el DNS del gateway.
+  aliases = {
+    sisar-server = [
+      "sisar.com.ar"
+      "www.sisar.com.ar"
+    ];
+  };
 in
 {
   # Resolución de nombres entre hosts (tabla inversa: IP -> [nombres])
-  networking.hosts = lib.mapAttrs' (n: ip: lib.nameValuePair ip [ n ]) lan;
+  networking.hosts = lib.mapAttrs' (
+    n: ip: lib.nameValuePair ip ([ n ] ++ (aliases.${n} or [ ]))
+  ) lan;
 
   # Red de seguridad: deja los nameservers también en /etc/resolv.conf vía
   # resolvconf, independientemente de lo que resuelva NetworkManager.

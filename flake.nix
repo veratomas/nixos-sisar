@@ -34,6 +34,24 @@
     # mueva lo que despliega esta configuración.
     sisar.url = "git+ssh://git@github.com/veratomas/sisar?ref=0.2.0";
 
+    # Fuente del backend del sitio web (modules/isat.nix). Es el código Rust
+    # de /var/www/sisar/isat-server.
+    #
+    # `path:` y no `git+ssh:` como el input `sisar` de arriba porque ese
+    # directorio todavía NO es un repo git: es una copia desempaquetada de
+    # isat-src.zip. Apunta al subdirectorio isat-server/ y no a la raíz del
+    # proyecto a propósito — así editar el frontend (que es lo que se está
+    # tocando todos los días) no invalida el lock del input; sólo lo hace un
+    # cambio en el código Rust, y ahí toca `nix flake update isat-src`.
+    #
+    # PENDIENTE: cuando el código de ISAT tenga su repo, esto pasa a ser un
+    # `git+ssh://...?ref=<tag>` igual que `sisar`, y deja de depender de un
+    # directorio mutable fuera del flake.
+    isat-src = {
+      url = "path:/var/www/sisar/isat-server";
+      flake = false;
+    };
+
     # Colmena como input: necesario para la salida colmenaHive (ver abajo).
     # A propósito NO se hace inputs.nixpkgs.follows: así se aprovecha la caché
     # binaria de colmena en vez de recompilarla desde el fuente.

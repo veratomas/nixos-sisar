@@ -31,7 +31,7 @@
       cpuCores = 8;
       ramGb = 16.0;
     };
-    storage.minFreeGb = 50.0;
+    storage.minFreeGb = 500.0;
 
     # Credenciales fuera del store, legibles por el gid 3000 (sisar-data).
     netrcFile = "/etc/sisar/netrc";
