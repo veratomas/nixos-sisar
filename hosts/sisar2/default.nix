@@ -10,6 +10,7 @@
     ./hardware-configuration.nix
     ../../modules/base.nix
     ../../modules/nfs-client.nix
+    ../../modules/disco-nodo.nix
     ../../modules/storage-nodes.nix
     ../../modules/sisar-node.nix
   ];

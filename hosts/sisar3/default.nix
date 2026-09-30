@@ -10,6 +10,7 @@
     ./hardware-configuration.nix
     ../../modules/base.nix
     ../../modules/nfs-client.nix
+    ../../modules/disco-nodo.nix
     ../../modules/storage-nodes.nix
     ../../modules/sisar-node.nix
   ];
@@ -30,7 +31,10 @@
       cpuCores = 8;
       ramGb = 16.0;
     };
-    storage.minFreeGb = 50.0;
+    # 500 como sisar1 y sisar2. Estaba en 50 porque jobs/ vivía en el disco de
+    # sistema (219G), donde un piso de 500 no se alcanza nunca; ahora jobs/ es
+    # el disco de datos de 7,3T (disco-nodo.nix) y el valor de la flota aplica.
+    storage.minFreeGb = 500.0;
 
     # Credenciales fuera del store, legibles por el gid 3000 (sisar-data).
     netrcFile = "/etc/sisar/netrc";
