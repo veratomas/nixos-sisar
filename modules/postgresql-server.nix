@@ -63,6 +63,53 @@ in
     '';
   };
 
+  # ── Esperar la IP de la LAN antes de arrancar ──────────────────────────────
+  #
+  # `listen_addresses` nombra una IP concreta, y PostgreSQL la bindea UNA sola
+  # vez, al arrancar. Si en ese momento la IP todavía no está asignada, no
+  # falla: loguea
+  #
+  #   could not bind IPv4 address "192.168.0.241": Cannot assign requested address
+  #   WARNING: could not create listen socket for "192.168.0.241"
+  #
+  # sigue adelante escuchando SÓLO en localhost, y systemd lo deja en
+  # "active (running)". Impecable a la vista, inalcanzable para los nodos.
+  #
+  # Pasó en el arranque del 2026-09-29: los schedulers de los cuatro nodos en
+  # bucle de reinicio con "pool timed out while waiting for an open connection"
+  # mientras `systemctl status postgresql` mostraba todo bien. Costó encontrarlo
+  # porque el síntoma aparece en los nodos y la causa está en el servidor.
+  #
+  # network-online.target por sí solo no alcanza: garantiza que hay red, no que
+  # ESTA dirección esté puesta en la interfaz. Así que se espera explícitamente.
+  #
+  # Y si no aparece, se aborta en vez de arrancar a medias: un PostgreSQL caído
+  # se nota enseguida, uno escuchando sólo en localhost no.
+  systemd.services.postgresql = {
+    wants = [ "network-online.target" ];
+    after = [ "network-online.target" ];
+    path = [ pkgs.iproute2 ];
+
+    # mkBefore: esto va ANTES del preStart del módulo de nixpkgs (initdb, etc.),
+    # no en lugar de él. Ojo con `exit 0` acá: cortaría el resto del preStart.
+    preStart = lib.mkBefore ''
+      lista=
+      for _ in $(seq 1 90); do
+        if ip -4 addr show to ${myIp}/32 | grep -q inet; then
+          lista=1
+          break
+        fi
+        sleep 1
+      done
+      if [ -z "$lista" ]; then
+        echo "la IP ${myIp} no apareció en 90s: se aborta el arranque en lugar" \
+             "de quedar escuchando sólo en localhost, que dejaría a los nodos" \
+             "sin base de datos sin que se note" >&2
+        exit 1
+      fi
+    '';
+  };
+
   # Backups diarios de la base. Van al disco de datos, así que quedan en el
   # disco grande y no en el de sistema. NO reemplazan un backup fuera de la
   # máquina: si se muere ese disco, se van los datos y los backups juntos.
