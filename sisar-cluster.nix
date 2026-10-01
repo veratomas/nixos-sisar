@@ -34,13 +34,13 @@
   userTiers = {
     demo = {
       max_aoi_km2 = 500;
-      max_time_range_days = 30;
+      max_time_range_days = 0;
       max_concurrent_jobs = 1;
       max_jobs_per_month = 3;
     };
     free = {
       max_aoi_km2 = 2000;
-      max_time_range_days = 180;
+      max_time_range_days = 0;
       max_concurrent_jobs = 2;
       max_jobs_per_month = 10;
     };
