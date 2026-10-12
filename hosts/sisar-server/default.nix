@@ -34,6 +34,15 @@
     # Los tokens no van al store: archivo root-owned que el servidor lee al
     # arrancar. Rotar uno es editarlo y reiniciar el servicio.
     interfaceTokensFile = "/etc/sisar/interface-tokens.toml";
+
+    # Reemplaza entero el default del módulo (no se fusiona con él), así que
+    # van las cuatro claves. Sólo `connections` difiere del default.
+    processingDefaults = {
+      range_looks = 40;
+      azimuth_looks = 10;
+      connections = 3;
+      max_acquisitions = 30;
+    };
   };
 
   boot.loader.systemd-boot.enable = true;
