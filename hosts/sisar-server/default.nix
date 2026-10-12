@@ -11,6 +11,7 @@
     ../../modules/base.nix
     ../../modules/nfs-server.nix
     ../../modules/disco-sisar.nix
+    ../../modules/nextcloud.nix
     ../../modules/postgresql-server.nix
     ../../modules/sisar-master.nix
     ../../modules/nginx.nix
