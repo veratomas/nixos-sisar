@@ -5,13 +5,6 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    # nixpkgs actual ya no empaqueta ningún CUDA anterior a la serie 11.4:
-    # las GTX 650 son Kepler (sm_30), y CUDA dejó de compilar para sm_30 a
-    # partir de la 11.0 (ver modules/cuda.nix). Se fija este nixpkgs viejo
-    # SOLO para sacar `cudatoolkit_10_2` de ahí, vía el overlay `cuda102` de
-    # abajo — nada más de este input se usa en el resto de la config.
-    nixpkgs-cuda102.url = "github:NixOS/nixpkgs/nixos-20.09";
-
     rust-overlay.url = "github:oxalica/rust-overlay";
 
     zen-browser.url = "github:youwen5/zen-browser-flake";
@@ -86,29 +79,11 @@
             inherit (final) config;
           };
         })
-
-        # pkgs.cuda102.cudatoolkit_10_2 — ver comentario del input arriba y
-        # modules/cuda.nix. nixos-20.09 está EOL (sin actualizaciones desde
-        # 2021): si su caché binaria ya no tiene este derivation cacheado,
-        # `nixos-rebuild`/`colmena` van a intentar compilarlo desde el
-        # fuente. cudatoolkit es básicamente el instalador binario de NVIDIA
-        # re-empaquetado (fetchurl + patchelf), así que en general "compilar"
-        # es sólo bajar y desempaquetar ese instalador — pero si la URL de
-        # NVIDIA para esa versión ya no resuelve, el build va a fallar. Vale
-        # la pena probar `colmena build` una vez antes de depender de esto.
-        (final: _: {
-          cuda102 = import inputs.nixpkgs-cuda102 {
-            inherit (final.stdenv.hostPlatform) system;
-            config.allowUnfree = true;
-            config.nvidia.acceptLicense = true;
-          };
-        })
       ];
 
       pkgs = import nixpkgs {
         inherit system overlays;
         config.allowUnfree = true;
-        config.nvidia.acceptLicense = true;
       };
 
       # Claves públicas autorizadas para desplegar (usuario `sisar` en los 6

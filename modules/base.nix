@@ -16,8 +16,6 @@
     ./users.nix
     ./locale.nix
     ./docker.nix
-    ./nvidia-gtx650.nix
-    ./cuda.nix
     ./postgresql-client.nix
     ./software.nix
     ./python.nix

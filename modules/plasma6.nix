@@ -26,11 +26,6 @@
   # Aceleración gráfica
   hardware.graphics.enable = true;
 
-  # Único host con escritorio: acá sí tiene sentido el panel gráfico de
-  # nvidia-settings (nvidia-gtx650.nix lo deja en false por default para no
-  # instalarlo en los nodos headless).
-  hardware.nvidia.nvidiaSettings = true;
-
   # Audio (PipeWire, no PulseAudio)
   services.pulseaudio.enable = false;
   services.pipewire = {
