@@ -25,7 +25,7 @@
     #
     # El ref es explícito para que un cambio de rama por defecto en GitHub no
     # mueva lo que despliega esta configuración.
-    sisar.url = "git+ssh://git@github.com/veratomas/sisar?ref=0.2.0";
+    sisar.url = "git+ssh://git@github.com/veratomas/sisar?ref=0.3.0";
 
     # Fuente del backend del sitio web (modules/isat.nix). Es el código Rust
     # de /var/www/sisar/isat-server.
