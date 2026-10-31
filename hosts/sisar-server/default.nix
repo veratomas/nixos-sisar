@@ -36,12 +36,15 @@
     interfaceTokensFile = "/etc/sisar/interface-tokens.toml";
 
     # Reemplaza entero el default del módulo (no se fusiona con él), así que
-    # van las cuatro claves. Sólo `connections` difiere del default.
+    # van todas las claves. Difieren del default `connections` y la red.
     processingDefaults = {
       range_looks = 40;
       azimuth_looks = 10;
       connections = 3;
       max_acquisitions = 30;
+      # Red secuencial de topsStack: cada fecha con sus `connections` vecinas
+      # en el tiempo. Sin esta clave el server usa Delaunay.
+      isce2_network.method = "sequential";
     };
   };
 

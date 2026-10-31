@@ -30,25 +30,30 @@
 
   # Límites por tier de usuario. El servidor los aplica al aceptar el job; el
   # scheduler usa max_concurrent_jobs al despachar. TIENEN que coincidir, y por
-  # eso se declaran una sola vez.
+  # eso se declaran una sola vez. `workflows` es qué técnicas puede pedir cada
+  # tier (lo aplica el servidor; el scheduler solo acepta la clave): psi
+  # (MiaplPy) es la más cara, solo para pro.
   userTiers = {
     demo = {
       max_aoi_km2 = 500;
       max_time_range_days = 0;
       max_concurrent_jobs = 1;
       max_jobs_per_month = 3;
+      workflows = [ "dinsar" "sbas" ];
     };
     free = {
       max_aoi_km2 = 2000;
       max_time_range_days = 0;
       max_concurrent_jobs = 2;
       max_jobs_per_month = 10;
+      workflows = [ "dinsar" "sbas" ];
     };
     pro = {
       max_aoi_km2 = 0;
       max_time_range_days = 0;
       max_concurrent_jobs = 5;
       max_jobs_per_month = 0;
+      workflows = [ "dinsar" "sbas" "psi" ];
     };
   };
 

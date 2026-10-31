@@ -39,7 +39,7 @@
   # Requiere autorizar la clave para ese usuario Y sudo sin contraseña, porque
   # colmena escala privilegios con `sudo -H --` para activar la generación.
   #
-  # users.users.sisar.openssh.authorizedKeys.keys = deployKeys;
+  users.users.sisar.openssh.authorizedKeys.keys = deployKeys;
   #
   # security.sudo.extraRules = [
   #   {

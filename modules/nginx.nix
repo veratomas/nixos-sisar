@@ -14,7 +14,7 @@
 # Cuando SCL apruebe y el dominio esté delegado de verdad: agregar
 # `enableACME = true;` + `forceSSL = true;` al virtualHost, abrir el 443 en el
 # firewall y sacar la entrada de extraHosts.
-{ ... }:
+{ inputs, ... }:
 let
   nodes = import ../nodes.nix;
   serverIp = nodes.server.sisar-server;
@@ -68,6 +68,23 @@ in
       locations."/panel" = {
         proxyPass = backend;
       };
+    };
+
+    # Mini App de preferencias del bot de SISAR (bot/miniapp/ del repo).
+    #
+    # Solo escucha en loopback: la publica `tailscale funnel` en
+    # https://sisar-server.tail7bbeb7.ts.net:8443, que es la URL que el bot
+    # tiene en MINIAPP_URL. Se sirve desde el input `sisar` del flake, no desde
+    # el checkout: lo público es la versión desplegada, cambia con
+    # `nix flake update sisar`, y nginx no necesita leer /home/sisar (700).
+    # Es una página estática sin datos ni credenciales.
+    virtualHosts."sisar-miniapp" = {
+      listen = [ { addr = "127.0.0.1"; port = 18443; } ];
+      root = "${inputs.sisar}/bot/miniapp";
+      locations."/".index = "index.html";
+      extraConfig = ''
+        autoindex off;
+      '';
     };
   };
 }
