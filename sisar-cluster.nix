@@ -21,11 +21,12 @@
 
   # Etiquetas de imagen. Tienen que ser las que están construidas en los nodos.
   images = {
-    download = "sisar/download:0.2.0";
-    isce2 = "sisar/isce2:0.2.0";
-    mintpy = "sisar/mintpy:0.2.0";
-    miaplpy = "sisar/miaplpy:0.2.0";
-    results = "sisar/results:0.2.0";
+    download = "sisar/download:0.4.1";
+    isce2 = "sisar/isce2:0.4.1";
+    isce3 = "sisar/isce3:0.4.1";
+    mintpy = "sisar/mintpy:0.4.1";
+    miaplpy = "sisar/miaplpy:0.4.1";
+    results = "sisar/results:0.4.1";
   };
 
   # Límites por tier de usuario. El servidor los aplica al aceptar el job; el
