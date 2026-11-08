@@ -2,7 +2,7 @@
 #
 # Datos, no un módulo: lo leen tanto modules/sisar-node.nix (los schedulers)
 # como modules/sisar-master.nix (el API server). Ese es el punto — `userTiers`
-# y la imagen de resultados tienen que coincidir entre el servidor y los nodos,
+# y el registry de las imágenes tienen que coincidir entre el servidor y los nodos,
 # y hasta ahora eran dos declaraciones separadas con un comentario pidiendo que
 # no divergieran. Acá son una sola.
 #
@@ -19,15 +19,12 @@
   netrcFile = "/etc/sisar/netrc";
   cdsapircFile = "/etc/sisar/cdsapirc";
 
-  # Etiquetas de imagen. Tienen que ser las que están construidas en los nodos.
-  images = {
-    download = "sisar/download:0.4.1";
-    isce2 = "sisar/isce2:0.4.1";
-    isce3 = "sisar/isce3:0.4.1";
-    mintpy = "sisar/mintpy:0.4.1";
-    miaplpy = "sisar/miaplpy:0.4.1";
-    results = "sisar/results:0.4.1";
-  };
+  # El registry de las imágenes, en sisar-server. Las seis referencias, con
+  # el tag del commit de `sisar` que fija flake.lock, las arma el módulo
+  # services.sisar.images (en el repo sisar): acá sólo va dónde está.
+  # Una IP y no "sisar-server": en el propio servidor ese nombre resuelve a
+  # 127.0.0.2, y la referencia tiene que ser el mismo string en todos lados.
+  registry = "${(import ./nodes.nix).server.sisar-server}:5000";
 
   # Límites por tier de usuario. El servidor los aplica al aceptar el job; el
   # scheduler usa max_concurrent_jobs al despachar. TIENEN que coincidir, y por

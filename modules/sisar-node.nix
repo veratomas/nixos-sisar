@@ -13,7 +13,7 @@
 # cuando hace falta — un nodo con otro disco y otro minFreeGb, por ejemplo —
 # sin que deje de haber un solo lugar donde está el valor común.
 #
-# `images`, `userTiers` y `workflows` son los que conviene NO apartar: el
+# `userTiers` y `workflows` son los que conviene NO apartar: el
 # servidor y los nodos tienen que coincidir en los dos primeros, y que
 # workflows.toml resuelva al mismo path del store en los seis hosts es lo que
 # hace visible que la flota está de acuerdo sobre lo que cuesta cada etapa.
@@ -28,7 +28,10 @@ let
   cluster = import ../sisar-cluster.nix;
 in
 {
-  imports = [ inputs.sisar.nixosModules.scheduler ];
+  imports = [
+    inputs.sisar.nixosModules.scheduler
+    inputs.sisar.nixosModules.images
+  ];
 
   # ── Recuperación del scheduler tras un arranque sin NFS ────────────────────
   #
@@ -99,9 +102,15 @@ in
     netrcFile = lib.mkDefault cluster.netrcFile;
     cdsapircFile = lib.mkDefault cluster.cdsapircFile;
 
-    images = lib.mapAttrs (_: v: lib.mkDefault v) cluster.images;
-
     userTiers = lib.mkDefault cluster.userTiers;
     workflows = lib.mkDefault cluster.workflows;
+  };
+
+  # Las imágenes las construye sisar-server; el nodo las baja antes de
+  # arrancar el scheduler, y si no puede, no toma trabajo.
+  services.sisar.images = {
+    enable = true;
+    inherit (cluster) registry;
+    puller.enable = true;
   };
 }

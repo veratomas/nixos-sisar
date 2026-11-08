@@ -11,4 +11,11 @@
 }:
 {
   virtualisation.docker.enable = true;
+
+  # Que reiniciar dockerd no mate los contenedores. Con stateVersion 25.11 el
+  # default es false, y cualquier cambio en daemon.json (que va en el
+  # ExecStart) reinicia dockerd al activar: un deploy así se llevaba puestas
+  # todas las tareas en curso. Este mismo cambio es el último reinicio que las
+  # mata.
+  virtualisation.docker.daemon.settings.live-restore = true;
 }

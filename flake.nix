@@ -122,6 +122,55 @@
       # por colmena, para saber a qué host conectarse por SSH. Salen de
       # nodes.nix, igual que hostNames.
       lan = nodes.server // nodes.compute;
+
+      # El deploy completo, en el orden que piden las imágenes: primero
+      # sisar-server, que construye y sube las del commit nuevo; después los
+      # nodos, que las bajan antes de arrancar el scheduler. Así un build roto
+      # deja a los nodos en el commit anterior, y un nodo sólo está fuera de
+      # servicio lo que tarda el pull.
+      #
+      # Un `colmena apply` a secas también es seguro: los nodos no toman
+      # trabajo hasta que estén las imágenes, y sisar-scheduler-retry los
+      # levanta después. Sólo es más ruidoso y más lento.
+      sisarDeploy = pkgs.writeShellApplication {
+        name = "sisar-deploy";
+        runtimeInputs = [
+          inputs.colmena.packages.${system}.colmena
+          pkgs.openssh
+          pkgs.coreutils
+        ];
+        text = ''
+          server="root@${lan.sisar-server}"
+          tag="$(nix eval --raw .#nixosConfigurations.sisar-server.config.services.sisar.images.tag)"
+
+          echo "==> 1/3 sisar-server: registry y build de $tag"
+          colmena apply --on @server
+
+          # Type=exec: si el commit cambió, el servicio está corriendo; si no
+          # cambió, quedó como terminó la vez anterior.
+          echo "==> 2/3 esperando el build de $tag"
+          deadline=$((SECONDS + 4 * 3600))
+          while :; do
+            active="$(ssh -o BatchMode=yes "$server" systemctl show sisar-images-build -p ActiveState --value)"
+            result="$(ssh -o BatchMode=yes "$server" systemctl show sisar-images-build -p Result --value)"
+            state="$active $result"
+            case "$state" in
+              "inactive success") break ;;
+              failed*|"inactive "*)
+                echo "sisar-deploy: el build falló ($state); los nodos no se tocaron" >&2
+                ssh -o BatchMode=yes "$server" journalctl -u sisar-images-build -n 30 --no-pager >&2
+                echo "Para reintentar: systemctl restart sisar-images-build, y de nuevo sisar-deploy" >&2
+                exit 1
+                ;;
+            esac
+            [ "$SECONDS" -lt "$deadline" ] || { echo "sisar-deploy: el build lleva más de 4 h" >&2; exit 1; }
+            sleep 60
+          done
+
+          echo "==> 3/3 nodos de cómputo"
+          colmena apply --on @client
+        '';
+      };
     in
     {
       nixosConfigurations = nixpkgs.lib.genAttrs hostNames mkHost;
@@ -144,8 +193,11 @@
           inputs.colmena.packages.${system}.colmena
           pkgs.nixfmt-rfc-style
           pkgs.nix-output-monitor
+          sisarDeploy
         ];
       };
+
+      packages.${system}.sisar-deploy = sisarDeploy;
 
       # `colmena apply switch` despliega esto a toda la flota (o a un
       # subconjunto con --on / --on @tag) desde una sola máquina.
