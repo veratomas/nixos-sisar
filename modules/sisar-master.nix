@@ -8,11 +8,14 @@
 {
   config,
   lib,
+  pkgs,
   inputs,
   ...
 }:
 let
   cluster = import ../sisar-cluster.nix;
+
+  dockerRoot = "/srv/sisar/docker";
 in
 {
   imports = [
@@ -36,5 +39,39 @@ in
       enable = true;
       clients = builtins.attrValues (import ../nodes.nix).compute;
     };
+  };
+
+  # Docker del servidor en el disco de datos, con una política de caché propia.
+  #
+  # En la raíz (219 GB, con el store y PostgreSQL) quedaban ~31 GB libres, y la
+  # GC de BuildKit por defecto quiere 41 GB libres: recortaba la caché a ~20 GB,
+  # menos que un juego de imágenes, y cada commit reconstruía las seis en frío
+  # (~2 h, y con versiones de conda nuevas). Acá la caché se queda: nunca menos
+  # de 100 GB, nunca más de 300 GB, y siempre 500 GB libres en el disco.
+  #
+  # En el servidor Docker sólo construye: Nextcloud es un contenedor de NixOS,
+  # no de Docker, y el registry es un servicio.
+  virtualisation.docker.daemon.settings = {
+    data-root = dockerRoot;
+    builder.gc = {
+      enabled = true;
+      defaultReservedSpace = "100GB";
+      defaultMaxUsedSpace = "300GB";
+      defaultMinFreeSpace = "500GB";
+    };
+  };
+
+  systemd.services.docker = {
+    # Sin el disco montado, dockerd armaría una raíz nueva en el disco de
+    # sistema, y lo llenaría.
+    unitConfig.RequiresMountsFor = [ dockerRoot ];
+
+    # Se crea acá, antes que dockerd, por la ACL por defecto de /srv/sisar
+    # (rwx para sisar-data): heredada, cada archivo de cada capa quedaría con
+    # esa entrada, visible por NFS. Lo mismo que hace nextcloud.nix.
+    preStart = ''
+      ${pkgs.coreutils}/bin/install -d -m 0710 -o root -g root ${dockerRoot}
+      ${pkgs.acl}/bin/setfacl -b ${dockerRoot}
+    '';
   };
 }
