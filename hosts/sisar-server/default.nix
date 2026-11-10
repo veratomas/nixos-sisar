@@ -35,17 +35,8 @@
     # arrancar. Rotar uno es editarlo y reiniciar el servicio.
     interfaceTokensFile = "/etc/sisar/interface-tokens.toml";
 
-    # Reemplaza entero el default del módulo (no se fusiona con él), así que
-    # van todas las claves. Difieren del default `connections` y la red.
-    processingDefaults = {
-      range_looks = 40;
-      azimuth_looks = 10;
-      connections = 3;
-      max_acquisitions = 30;
-      # Red secuencial de topsStack: cada fecha con sus `connections` vecinas
-      # en el tiempo. Sin esta clave el server usa Delaunay.
-      isce2_network.method = "sequential";
-    };
+    # Sin processingDefaults: rige el default del módulo (looks 40×10,
+    # connections 3, 30 adquisiciones, red Delaunay, coherencia 0.35).
   };
 
   boot.loader.systemd-boot.enable = true;

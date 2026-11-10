@@ -220,11 +220,11 @@
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
-        "lastModified": 1794163900,
-        "narHash": "sha256-ksUw4GjLdVaZhLrnvkTep93uf9i19EiPuim27sCI0h8=",
+        "lastModified": 1794282779,
+        "narHash": "sha256-EF10uH1SFqP5XOGaZvLP5s26U2l2/H413jeY/bOksdw=",
         "ref": "0.4.1",
-        "rev": "9795e8bc2df24f0f1e904848a0bf3ffb5e6f776e",
-        "revCount": 161,
+        "rev": "a79bd50500811efd4fb32431a5c97bca095f0e2b",
+        "revCount": 165,
         "type": "git",
         "url": "ssh://git@github.com/veratomas/sisar"
       },
