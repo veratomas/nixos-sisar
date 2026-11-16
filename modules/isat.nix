@@ -1,79 +1,87 @@
-# modules/isat.nix
+# Servidor ISAT (frontend + usuarios/sesiones) detrás del nginx de sisar.com.ar.
 #
-# Servidor ISAT: la API que usa el sitio web de /var/www/sisar.
+# Copiar a  nixos-sisar/modules/isat.nix  e importarlo desde
+# hosts/sisar-server/default.nix. Requiere el input `isat` en flake.nix.
 #
-# El frontend (HTML/JS) es estático y lo sirve nginx, pero cada pantalla habla
-# con este backend por rutas relativas `/api/...`: login, listado de
-# interferogramas, tiles, panel de admin. Sin este servicio nginx devuelve 404
-# en /api/login y la pantalla de ingreso dice "no se pudo conectar al
-# servidor" — que es exactamente lo que pasaba.
-#
-# OJO con el nombre: esto NO es `sisar-server` (modules/sisar-master.nix), que
-# es la API de procesamiento en Rust y ya ocupa el 8080. Son dos servicios
-# distintos; por eso ISAT va al 8081.
+# El módulo real vive en el repo de ISAT (despliegue/nix/module.nix): acá solo se
+# configura, para no duplicar la definición del servicio en dos lados.
 {
-  lib,
+  config,
   pkgs,
+  lib,
   inputs,
   ...
 }:
-let
-  # Se compila desde el input `isat-src` (ver flake.nix): el código vive en
-  # /var/www/sisar/isat-server.
-  isat-server = pkgs.rustPlatform.buildRustPackage {
-    pname = "isat-server";
-    version = "0.1.0";
-    src = inputs.isat-src;
-    cargoLock.lockFile = inputs.isat-src + "/Cargo.lock";
-    meta.description = "Servidor ISAT: API de usuarios, interferogramas y tiles";
-  };
-
-  # Sólo escucha en loopback: la puerta de entrada es nginx en el 80. Así no
-  # hace falta abrir el 8081 en el firewall.
-  puerto = 8081;
-
-  # El frontend se sirve desde el directorio mutable a propósito, no desde el
-  # nix store: mientras la página se está armando, editar un .js y recargar
-  # tiene que alcanzar, sin rebuild. El binario sí sale del store.
-  frontendDir = "/var/www/sisar/frontend";
-in
 {
-  systemd.services.isat = {
-    description = "Servidor ISAT (API del sitio web)";
-    wantedBy = [ "multi-user.target" ];
-    after = [ "network.target" ];
+  imports = [ inputs.isat.nixosModules.default ];
 
-    environment = {
-      ISAT_BIND = "127.0.0.1:${toString puerto}";
-      ISAT_DB = "/var/lib/isat/isat.db";
-      ISAT_FRONTEND_DIR = frontendDir;
-      ISAT_UPLOADS_DIR = "/var/lib/isat/interferogramas";
-      # Los procesamientos del pipeline SISAR, que el panel de admin importa
-      # desde /api/admin/jobs. NO es un directorio propio de ISAT: lo escribe
-      # el pipeline en el disco de datos, y el vigilante lo revisa cada 300s.
-      ISAT_JOBS_DIR = "/srv/sisar/jobs";
-      ISAT_MAX_UPLOAD_MB = "500";
-    };
+  services.isat = {
+    enable = true;
 
-    serviceConfig = {
-      ExecStart = lib.getExe' isat-server "isat-server";
+    # Solo loopback: el único que tiene que llegar es el nginx de este mismo
+    # host, que ya hace proxy_pass en modules/nginx.nix. Exponerlo en 0.0.0.0
+    # lo dejaría accesible por el tailnet sin pasar por TLS ni por el reverse
+    # proxy.
+    host = "127.0.0.1";
 
-      # Sin ISAT_ADMIN_PASSWORD el servidor genera una clave aleatoria en el
-      # primer arranque y la escribe en el journal:
-      #   journalctl -u isat | grep -i admin
-      # Es a propósito: una clave fija acá quedaría en el nix store, que es
-      # legible por cualquier usuario de la máquina.
+    # 8081 y no 8080: en sisar-server el 8080 ya es de `sisar-master`, la API
+    # de procesamiento. Tiene que coincidir con el `backend` de
+    # modules/nginx.nix.
+    port = 8081;
 
-      DynamicUser = true;
-      StateDirectory = "isat";
-      Restart = "on-failure";
-      RestartSec = 5;
+    # No hace falta abrir nada en el firewall: al escuchar en loopback, el
+    # tráfico entra por 80/443 que nginx ya tiene abiertos. (El módulo no tiene
+    # una opción `openFirewall` propia: sólo `nginx.openFirewall`, que acá no
+    # aplica porque `nginx.enable` es false. Declararla rompía la evaluación.)
 
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      PrivateTmp = true;
-      NoNewPrivileges = true;
-      CapabilityBoundingSet = "";
-    };
+    # El host ya tiene su nginx (modules/nginx.nix), con el virtualHost
+    # "sisar.com.ar" marcado `default` y con "localhost" entre sus alias. El
+    # de este módulo declararía otro vhost `default`, y nginx no arranca con
+    # dos: hay que apagarlo y dejar que el del host haga el proxy.
+    nginx.enable = false;
+
+    # La página la sirve ese nginx desde /var/www/sisar/frontend. El backend
+    # apunta al mismo directorio para que las dos mitades sirvan lo mismo.
+    frontendDir = "/var/www/sisar/frontend";
+
+    # Tiene que coincidir con el client_max_body_size de modules/nginx.nix
+    # (500M). Si se cambia uno, cambiar el otro: si nginx permite más que el
+    # backend, la subida se corta con un error confuso a mitad de camino.
+    maxUploadMb = 500;
+
+    # Dónde deja el pipeline los jobs terminados (0.4.1 en adelante): un
+    # almacén Zarr por job en <id>/results/sisar.zarr. ISAT lo lee ahí mismo,
+    # de sólo lectura. El pipeline exporta sólo eso: sin esta carpeta los jobs
+    # nuevos no aparecen en el mapa. El usuario dinámico del servicio los lee
+    # porque están abiertos al resto (r-x en carpetas, r-- en archivos).
+    resultsDir = "/srv/sisar/results";
+
+    # Sin adminPasswordFile a propósito: el servidor genera una contraseña
+    # aleatoria en el primer arranque (la base arranca vacía) y la escribe en
+    # el journal. Para leerla, una vez aplicado esto:
+    #
+    #   journalctl -u isat | grep -i admin
+    #
+    # Anotala, entrá con el usuario `admin` y cambiala desde el panel de
+    # Usuarios. Después de eso el valor del journal deja de servir.
   };
+
+  # Desde la v0.8 la base es el esquema `isat` de la base PostgreSQL `sisar` (la
+  # de SISAR), por socket y con el rol `isat` (peer: el usuario dinámico se
+  # llama igual). Antes del primer arranque, una sola vez y como `postgres`:
+  # isat-server/migraciones/postgres/roles-y-permisos.sql, y si había cuentas
+  # en el isat.db anterior, migrar_a_postgres (ver despliegue/nixos.md).
+  #
+  # Vinculación con el bot de Telegram: el token con el que el bot canjea los
+  # códigos va en un archivo fuera del store (formato `telegram = "token"`).
+  # services.isat.telegram = {
+  #   tokensFile = "/etc/isat/tokens-interfaz.toml";
+  #   botName = "@el_bot";
+  # };
+
+  # El servicio corre con DynamicUser, así que su estado vive en
+  # /var/lib/private/isat con el enlace /var/lib/isat. Lo que hay que respaldar:
+  #
+  #   pg_dump -d sisar                   (cuentas, sesiones y metadatos: esquema isat)
+  #   /var/lib/isat/interferogramas/     (los archivos subidos y sus COG)
 }
