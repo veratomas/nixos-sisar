@@ -28,11 +28,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794797736,
-        "narHash": "sha256-QRjLNTQzWNrMvJ8JriVXn1LFglA9/HtTdfVTcO0YgZ0=",
+        "lastModified": 1795092180,
+        "narHash": "sha256-fZORfYKQUR28ywSbvSeSDhHzGx9O9ApH09OPUAxwVVU=",
         "ref": "zarr-lector",
-        "rev": "cf0f0dd590d176baa1a213684e8df966aee18029",
-        "revCount": 61,
+        "rev": "9c180da9ce541403d035e4d7ddf3cfb702c78ffc",
+        "revCount": 73,
         "type": "git",
         "url": "file:///home/sisar/isat"
       },
@@ -228,11 +228,11 @@
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
-        "lastModified": 1794617655,
-        "narHash": "sha256-7AdD9wL9l8LbYKLciLMqrWgGAilno1gHcPmlvwqcSq4=",
+        "lastModified": 1795107153,
+        "narHash": "sha256-b+1wx8GRum9zWzyzirWfL34yWQ0rmzw8k7X7wpdCKIM=",
         "ref": "0.4.1",
-        "rev": "56b7bcbb619fd032e2f13fce1969b157972a5816",
-        "revCount": 166,
+        "rev": "f532155d222ef9b1e99d64d76efe7ad1f5860369",
+        "revCount": 180,
         "type": "git",
         "url": "ssh://git@github.com/veratomas/sisar"
       },
